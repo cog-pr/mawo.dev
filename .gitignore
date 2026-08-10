@@ -32,3 +32,6 @@ fonts-src/
 # Claude Code のローカル設定（各自の環境ごとの許可設定なので共有しない）
 .claude/settings.local.json
 
+# wrangler のローカル状態・一時ファイル（miniflare のキャッシュなど）
+.wrangler/
+

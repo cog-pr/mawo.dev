@@ -173,10 +173,26 @@ PR ごとに検証されます。**予算割れはビルド失敗**です。達�
 
 ## デプロイ
 
-Cloudflare Pages を想定しています。
+**Cloudflare Workers（Static Assets）** で配信します。設定は `wrangler.jsonc` にあります。
+完全な静的サイトなので Worker スクリプトは持たず、アセットのみを配信する構成です。
+
+Pages ではなく Workers を選んだ理由は
+[意思決定ログ](src/content/notes/05-workers-over-pages.md) に記録しています。
+
+### Workers Builds（推奨）
+
+ダッシュボードでリポジトリを接続すると、push で自動デプロイされ、PRごとにプレビューURLが発行されます。
 
 - ビルドコマンド: `npm run fonts:fetch && npm run build:full`
 - 出力ディレクトリ: `dist`
+
+### 手元からデプロイする場合
+
+```sh
+npm run fonts:fetch
+npm run build:full
+npx wrangler deploy
+```
 
 > **公開先を変えたら `astro.config.mjs` の `site` を直してください。**
 > 現在は `https://mawo.dev` を指しています。この値は canonical、OGPの画像URL、
