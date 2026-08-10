@@ -32,6 +32,15 @@ npm run dev
 | `npm run budget:check` | 3ページ×3回の中央値で §8 の予算を検証 |
 | `npx astro check` | 型チェック |
 
+ブランド素材の生成は Python（Pillow）を使う別枠のツールです。生成物はコミット済みなので、
+**通常のビルドや開発に Python は不要**です。素材を変えたときだけ回します。
+
+| コマンド | 内容 |
+| :-- | :-- |
+| `python scripts/gen-og-image.py` | `public/og.jpg`（OGP画像）を生成。要 `fonts-src/` |
+| `python scripts/gen-favicons.py` | `favicon.ico` と `apple-touch-icon.png` を生成 |
+| `node scripts/gen-placeholder-images.mjs` | 作品のダミー画像を生成 |
+
 > **コンテンツを追加・変更したら `npm run build:full` を使ってください。**
 > 和文フォントは「出力HTMLに実際に現れた文字」だけを抽出しているため、
 > 新しい文字を含むコンテンツを足すと、そのままでは字形が欠けます。
@@ -168,3 +177,9 @@ Cloudflare Pages を想定しています。
 
 - ビルドコマンド: `npm run fonts:fetch && npm run build:full`
 - 出力ディレクトリ: `dist`
+
+> **公開先を変えたら `astro.config.mjs` の `site` を直してください。**
+> 現在は `https://mawo.dev` を指しています。この値は canonical、OGPの画像URL、
+> sitemap の各URLの基準になっているため、実際の公開先とズレると
+> SNSにリンクを貼ってもカードが表示されなくなります。
+> `public/robots.txt` の Sitemap 行も同じURLを持っています。

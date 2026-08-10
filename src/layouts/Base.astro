@@ -21,6 +21,12 @@ interface Props {
 
 const { title, description } = Astro.props;
 const siteName = '夜のビルの窓';
+const pageTitle = `${title} | ${siteName}`;
+
+// SNSやチャットに貼られたときのカード表示に使う絶対URL。
+// Astro.site（astro.config.mjs の site）が基準なので、公開先が変わったらそちらを直す。
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const ogImage = new URL('/og.jpg', Astro.site);
 ---
 
 <!doctype html>
@@ -28,10 +34,36 @@ const siteName = '夜のビルの窓';
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <meta name="description" content={description} />
     <meta name="generator" content={Astro.generator} />
-    <title>{title} | {siteName}</title>
+    <title>{pageTitle}</title>
+    <link rel="canonical" href={canonical} />
+
+    {/* favicon.svg が主。ico は非対応ブラウザ向けの保険。 */}
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+    {/*
+      SNS・チャットに貼られたときのカード表示。
+      ポートフォリオのURLは人に送られる前提なので、無いと味気ない表示になる。
+      og:image は絶対URLでないと読まれないクローラーがある。
+    */}
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={siteName} />
+    <meta property="og:locale" content="ja_JP" />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="夜の都市を背景にしたサイトタイトル WINDOWS AT NIGHT" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
     {/*
       @font-face は（インライン化した）CSS内にしかないため、preload しないと
       CSSのパースが終わるまでフォント取得が始まらず、その分 LCP が遅れる。
