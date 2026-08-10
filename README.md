@@ -194,8 +194,11 @@ npm run build:full
 npx wrangler deploy
 ```
 
+現在の公開URL: https://mawo-dev.trco0430.workers.dev
+
 > **公開先を変えたら `astro.config.mjs` の `site` を直してください。**
-> 現在は `https://mawo.dev` を指しています。この値は canonical、OGPの画像URL、
-> sitemap の各URLの基準になっているため、実際の公開先とズレると
-> SNSにリンクを貼ってもカードが表示されなくなります。
-> `public/robots.txt` の Sitemap 行も同じURLを持っています。
+> この値は canonical、OGPの画像URL、sitemap の各URLの基準になっているため、
+> 実際の公開先とズレると、SNSにリンクを貼ってもカードが表示されなくなります。
+> `public/robots.txt` の Sitemap 行も同じURLを持っているので、両方を直します。
+>
+> 独自ドメイン `mawo.dev` を当てるときは、この2箇所を `https://mawo.dev` に戻してください。
