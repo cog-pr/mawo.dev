@@ -5,12 +5,12 @@ import sitemap from '@astrojs/sitemap';
 // https://astro.build/config
 export default defineConfig({
   // 公開URL。sitemap の生成、canonical、OGPの絶対URLがこれを基準にする。
-  // 実際に配信されているURLと一致していないと、canonical が存在しないURLを指し、
-  // SNSにリンクを貼ってもカードが表示されなくなる。
+  // 実際に配信されているURLと一致していないと canonical がずれ、
+  // SNSにリンクを貼ってもカードが正しく表示されない。
   //
-  // 独自ドメイン mawo.dev を当てたら、ここと public/robots.txt の Sitemap 行を
-  // 'https://mawo.dev' に戻すこと。
-  site: 'https://mawo-dev.trco0430.workers.dev',
+  // Worker には *.workers.dev のURLも生きているが、正規URLはこちら。
+  // 配信先を変えるときは public/robots.txt の Sitemap 行も一緒に直すこと。
+  site: 'https://mawo.dev',
 
   integrations: [sitemap()],
 

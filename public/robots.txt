@@ -1,5 +1,5 @@
 User-agent: *
 Allow: /
 
-# 独自ドメイン mawo.dev を当てたら、このURLと astro.config.mjs の site を差し替える
-Sitemap: https://mawo-dev.trco0430.workers.dev/sitemap-index.xml
+# 配信先を変えるときは astro.config.mjs の site も一緒に直す
+Sitemap: https://mawo.dev/sitemap-index.xml
