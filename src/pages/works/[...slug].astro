@@ -1,0 +1,140 @@
+---
+import { getCollection, render } from 'astro:content';
+import { Image } from 'astro:assets';
+import Base from '../../layouts/Base.astro';
+
+export async function getStaticPaths() {
+  const works = await getCollection('works', ({ data }) => !data.draft);
+  return works.map((entry) => ({
+    params: { slug: entry.id },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props;
+const { title, titleEn, year, roles, stack, summary, cover } = entry.data;
+const { Content } = await render(entry);
+---
+
+<Base title={titleEn ?? title} description={summary}>
+  <article class="work">
+    <header class="work__header">
+      <Image
+        src={cover}
+        alt={`${title} のカバー画像`}
+        width={1600}
+        height={900}
+        loading="eager"
+        fetchpriority="high"
+        class="work__cover"
+        transition:name={`work-${entry.id}`}
+      />
+      <h1 class="work__title font-display">{titleEn ?? title}</h1>
+      {titleEn && <p class="work__title-jp">{title}</p>}
+    </header>
+
+    <div class="work__body">
+      <aside class="work__meta font-mono" aria-label="制作情報">
+        <dl>
+          <div>
+            <dt>YEAR</dt>
+            <dd>{year}</dd>
+          </div>
+          <div>
+            <dt>ROLE</dt>
+            <dd>{roles.join(' / ')}</dd>
+          </div>
+          <div>
+            <dt>STACK</dt>
+            <dd>{stack.join(' / ')}</dd>
+          </div>
+        </dl>
+      </aside>
+
+      <div class="work__content">
+        <Content />
+      </div>
+    </div>
+
+    <a href="/#works" class="work__back font-mono">&larr; 作品一覧へ戻る</a>
+  </article>
+</Base>
+
+<style>
+  @layer components {
+    .work {
+      max-width: 72ch;
+      margin-inline: auto;
+      padding: var(--space-5) var(--space-3);
+    }
+
+    .work__header {
+      margin-bottom: var(--space-5);
+    }
+
+    .work__cover {
+      width: 100%;
+      height: auto;
+      aspect-ratio: 16 / 9;
+      object-fit: cover;
+      border-radius: var(--radius-panel);
+      margin-bottom: var(--space-3);
+    }
+
+    .work__title {
+      font-size: var(--fs-h1);
+      color: var(--c-fluorescent);
+    }
+
+    .work__title-jp {
+      color: var(--c-dust);
+      margin-top: var(--space-1);
+    }
+
+    .work__body {
+      display: grid;
+      grid-template-columns: 10rem 1fr;
+      gap: var(--space-4);
+    }
+
+    .work__meta dl div {
+      margin-bottom: var(--space-3);
+    }
+
+    .work__meta dt {
+      color: var(--c-dust);
+      font-size: var(--fs-caption);
+      letter-spacing: 0.08em;
+      margin-bottom: 0.25rem;
+    }
+
+    .work__meta dd {
+      color: var(--c-fluorescent);
+      font-size: var(--fs-small);
+      margin-left: 0;
+      line-height: 1.6;
+    }
+
+    .work__content :global(p) {
+      margin-bottom: var(--space-3);
+    }
+
+    .work__back {
+      display: inline-block;
+      margin-top: var(--space-5);
+      color: var(--c-dust);
+      font-size: var(--fs-small);
+    }
+
+    .work__back:hover,
+    .work__back:focus-visible {
+      color: var(--c-fluorescent);
+    }
+
+    @media (max-width: 640px) {
+      .work__body {
+        grid-template-columns: 1fr;
+      }
+    }
+  }
+</style>

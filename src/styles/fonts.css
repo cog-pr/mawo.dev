@@ -1,0 +1,41 @@
+/*
+  すべてセルフホスト。Google Fonts へのランタイム接続は行わない（LCP対策）。
+  和文はビルド時にサイト内で実際に使われている文字だけへサブセット済み
+  （scripts/subset-fonts.mjs、コンテンツ追加時は再実行が必要）。
+*/
+/*
+  Archivo は wdth 80 / wght 700 に固定した静的インスタンスとしてサブセット済み
+  （scripts/subset-fonts.mjs 参照）。ヒーローの大見出し = LCP要素に使うため、
+  Base.astro で preload している。
+  ウェイトを増やすとファイルもリクエストも増えて LCP に直接効くので、
+  .font-display は 700 単一で運用すること。
+*/
+@font-face {
+  font-family: 'Archivo Variable';
+  src: url('/fonts/Archivo-display.woff2') format('woff2');
+  font-weight: 400 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/*
+  和文 Regular（weight 400）の @font-face は fonts-jp.generated.css にあります。
+  unicode-range で core / ext に分割しており、範囲文字列がサブセット結果と
+  ズレると欠字になるため、スクリプトが自動生成しています。
+*/
+
+@font-face {
+  font-family: 'Zen Kaku Gothic New';
+  src: url('/fonts/ZenKakuGothicNew-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'IBM Plex Mono';
+  src: url('/fonts/IBMPlexMono-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}

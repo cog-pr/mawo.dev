@@ -1,0 +1,59 @@
+---
+// スタイルは必ずコンポーネントのimportより先に読み込むこと。
+// Viteはモジュールグラフを深さ優先で辿ってCSSをバンドルするため、
+// 先に import したコンポーネント側の `@layer components` が
+// reset/base より前にバンドルされ、@layer の優先順位
+// （reset, base, components, utilities の順）が崩れてしまう。
+import '../styles/layers.css';
+import '../styles/tokens.css';
+import '../styles/fonts.css';
+import '../styles/fonts-jp.generated.css';
+import '../styles/reset.css';
+import '../styles/base.css';
+import { ClientRouter } from 'astro:transitions';
+import Header from '../components/layout/Header.astro';
+import Footer from '../components/layout/Footer.astro';
+
+interface Props {
+  title: string;
+  description: string;
+}
+
+const { title, description } = Astro.props;
+const siteName = '夜のビルの窓';
+---
+
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta name="description" content={description} />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title} | {siteName}</title>
+    {/*
+      @font-face は（インライン化した）CSS内にしかないため、preload しないと
+      CSSのパースが終わるまでフォント取得が始まらず、その分 LCP が遅れる。
+
+      先読みするのは LCP要素（ヒーローの大見出し）に使う Archivo だけにすること。
+      IBM Plex Mono や和文まで preload すると帯域を奪い合い、かえって LCP が悪化する
+      （実測: mono を足すと最悪値が 1980ms → 2054ms）。
+    */}
+    <link
+      rel="preload"
+      href="/fonts/Archivo-display.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <ClientRouter />
+  </head>
+  <body>
+    <Header />
+    <main>
+      <slot />
+    </main>
+    <Footer />
+  </body>
+</html>

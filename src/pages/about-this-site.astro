@@ -1,0 +1,384 @@
+---
+import { getCollection, render } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import IgniteDemo from '../components/facade/IgniteDemo.astro';
+import metrics from '../data/metrics.json';
+
+// 意思決定ログは時系列（古い順）。判断がどう積み上がったかを読ませるため。
+const notes = (await getCollection('notes')).sort(
+  (a, b) => a.data.date.valueOf() - b.data.date.valueOf()
+);
+const renderedNotes = await Promise.all(
+  notes.map(async (note) => ({ note, Content: (await render(note)).Content }))
+);
+
+const budgets = [
+  { label: 'Performance', value: metrics.scores.performance, target: '95 以上', unit: '' },
+  { label: 'Accessibility', value: metrics.scores.accessibility, target: '100', unit: '' },
+  { label: 'Best Practices', value: metrics.scores.bestPractices, target: '—', unit: '' },
+  { label: 'SEO', value: metrics.scores.seo, target: '—', unit: '' },
+];
+
+const vitals = [
+  {
+    label: 'LCP',
+    value: (metrics.vitals.lcpMs / 1000).toFixed(2),
+    unit: 's',
+    target: '2.0s 以下',
+  },
+  { label: 'CLS', value: metrics.vitals.cls.toFixed(3), unit: '', target: '0.05 以下' },
+  { label: 'TBT', value: String(metrics.vitals.tbtMs), unit: 'ms', target: '—' },
+  {
+    label: '初期JS (gzip)',
+    value: (metrics.budget.initialJsGzipBytes / 1024).toFixed(1),
+    unit: 'KB',
+    target: '30KB 以下',
+  },
+  {
+    label: 'フォント合計',
+    value: (metrics.budget.fontsBytes / 1024).toFixed(1),
+    unit: 'KB',
+    target: '200KB 以下',
+  },
+];
+
+const measuredAt = new Date(metrics.measuredAt).toLocaleString('ja-JP', {
+  timeZone: 'Asia/Tokyo',
+  dateStyle: 'medium',
+  timeStyle: 'short',
+});
+---
+
+<Base
+  title="About This Site"
+  description="このサイトの実測値と、採用しなかった選択肢を含む意思決定の記録。"
+>
+  <article class="about">
+    <header class="about__header">
+      <h1 class="about__title font-display">ABOUT THIS SITE</h1>
+      <p class="about__lead">
+        派手な演出を持ちながら速度を落とさないこと自体が、このサイトの主張です。
+        主張である以上、数値と判断の根拠を公開します。
+      </p>
+    </header>
+
+    <section class="about__section" aria-labelledby="metrics-heading">
+      <h2 id="metrics-heading" class="about__heading">実測値</h2>
+      <p class="about__note font-mono">
+        最終計測: {measuredAt} / {metrics.environment}
+      </p>
+
+      <ul class="scores">
+        {
+          budgets.map((b) => (
+            <li class="score">
+              <span class="score__value font-display">{b.value}</span>
+              <span class="score__label font-mono">{b.label}</span>
+              <span class="score__target font-mono">目標 {b.target}</span>
+            </li>
+          ))
+        }
+      </ul>
+
+      <table class="vitals">
+        <caption class="vitals__caption font-mono">パフォーマンス予算の実測</caption>
+        <thead>
+          <tr>
+            <th scope="col">指標</th>
+            <th scope="col">実測</th>
+            <th scope="col">目標</th>
+          </tr>
+        </thead>
+        <tbody>
+          {
+            vitals.map((v) => (
+              <tr>
+                <th scope="row" class="font-mono">
+                  {v.label}
+                </th>
+                <td class="font-mono vitals__value">
+                  {v.value}
+                  {v.unit}
+                </td>
+                <td class="font-mono vitals__target">{v.target}</td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+
+      <p class="about__note">
+        これらの数値は手打ちではありません。ビルド時に Lighthouse を実行して
+        <code class="font-mono">src/data/metrics.json</code>
+        に書き出し、このページはそれを読んでいます。手で書くと必ず陳腐化するためです。
+      </p>
+    </section>
+
+    <section class="about__section" aria-labelledby="demo-heading">
+      <h2 id="demo-heading" class="about__heading">演出の Before / After</h2>
+      <p class="about__body">
+        トップページの窓グリッドが点灯するシーケンスを、その場で操作できます。
+        <code class="font-mono">stagger</code>（セル間の遅延）と
+        <code class="font-mono">duration</code>（1セルあたりの尺）を変えると、
+        同じ演出がどれだけ印象を変えるかが分かります。
+      </p>
+      <IgniteDemo />
+    </section>
+
+    <section class="about__section" aria-labelledby="log-heading">
+      <h2 id="log-heading" class="about__heading">意思決定ログ</h2>
+      <p class="about__body">
+        採用した技術より、採用しなかった選択肢のほうが設計を語ります。
+        各エントリには必ず「検討したが選ばなかったもの」を含めています。
+      </p>
+
+      <ol class="log">
+        {
+          renderedNotes.map(({ note, Content }) => (
+            <li class="log__entry">
+              <article>
+                <p class="log__date font-mono">
+                  <time datetime={note.data.date.toISOString()}>
+                    {note.data.date.toLocaleDateString('ja-JP', {
+                      year: 'numeric',
+                      month: '2-digit',
+                      day: '2-digit',
+                    })}
+                  </time>
+                </p>
+                <h3 class="log__title">{note.data.title}</h3>
+
+                <dl class="log__meta">
+                  <dt class="font-mono">判断したこと</dt>
+                  <dd>{note.data.decision}</dd>
+
+                  <dt class="font-mono">検討した選択肢</dt>
+                  <dd>
+                    <ul class="log__alts">
+                      {note.data.alternatives.map((alt) => (
+                        <li>
+                          <span class="log__alt-option">{alt.option}</span>
+                          <span class="log__alt-why">{alt.why_not}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </dd>
+
+                  <dt class="font-mono">決め手</dt>
+                  <dd>{note.data.verdict}</dd>
+                </dl>
+
+                <div class="log__body">
+                  <Content />
+                </div>
+              </article>
+            </li>
+          ))
+        }
+      </ol>
+    </section>
+  </article>
+</Base>
+
+<script>
+  // 意思決定ログは縦に長いため、エントリ単位で控えめにリビールする。
+  // 署名要素（窓グリッド）より目立たせないこと（§10）。
+  import { initReveal } from '../components/motion/reveal';
+  initReveal('.log__entry');
+</script>
+
+<style>
+  @layer components {
+    .about {
+      max-width: 72ch;
+      margin-inline: auto;
+      padding: var(--space-5) var(--space-3) var(--space-6);
+    }
+
+    .about__header {
+      margin-bottom: var(--space-6);
+    }
+
+    .about__title {
+      font-size: var(--fs-h1);
+      color: var(--c-fluorescent);
+      margin-bottom: var(--space-3);
+    }
+
+    .about__lead {
+      color: var(--c-dust);
+    }
+
+    .about__section {
+      margin-bottom: var(--space-6);
+    }
+
+    .about__heading {
+      font-size: var(--fs-h2);
+      color: var(--c-fluorescent);
+      margin-bottom: var(--space-2);
+      padding-bottom: var(--space-1);
+      border-bottom: 1px solid var(--c-facade-lit);
+    }
+
+    .about__body,
+    .about__note {
+      color: var(--c-dust);
+      margin-block: var(--space-2);
+    }
+
+    .about__note {
+      font-size: var(--fs-small);
+    }
+
+    code {
+      color: var(--c-fluorescent);
+      font-size: 0.9em;
+    }
+
+    /* --- スコア --- */
+    .scores {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr));
+      gap: var(--space-2);
+      margin-block: var(--space-3);
+    }
+
+    .score {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      padding: var(--space-2);
+      background: var(--c-facade);
+      border-radius: var(--radius-panel);
+    }
+
+    .score__value {
+      font-size: var(--fs-h1);
+      color: var(--c-fluorescent);
+      line-height: 1;
+    }
+
+    .score__label {
+      color: var(--c-fluorescent);
+      font-size: var(--fs-caption);
+    }
+
+    .score__target {
+      color: var(--c-dust);
+      font-size: var(--fs-caption);
+    }
+
+    /* --- 予算テーブル --- */
+    .vitals {
+      width: 100%;
+      border-collapse: collapse;
+      margin-block: var(--space-3);
+      font-size: var(--fs-small);
+    }
+
+    .vitals__caption {
+      text-align: left;
+      color: var(--c-dust);
+      font-size: var(--fs-caption);
+      padding-bottom: var(--space-1);
+    }
+
+    .vitals th,
+    .vitals td {
+      text-align: left;
+      padding: var(--space-1) var(--space-2);
+      border-bottom: 1px solid var(--c-facade);
+    }
+
+    .vitals thead th {
+      color: var(--c-dust);
+      font-size: var(--fs-caption);
+      font-weight: 400;
+      letter-spacing: 0.06em;
+    }
+
+    .vitals tbody th {
+      color: var(--c-dust);
+      font-weight: 400;
+    }
+
+    .vitals__value {
+      color: var(--c-fluorescent);
+    }
+
+    .vitals__target {
+      color: var(--c-dust);
+    }
+
+    /* --- 意思決定ログ --- */
+    .log {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-5);
+      margin-top: var(--space-4);
+    }
+
+    .log__date {
+      color: var(--c-dust);
+      font-size: var(--fs-caption);
+    }
+
+    .log__title {
+      font-size: var(--fs-h2);
+      color: var(--c-fluorescent);
+      margin-block: var(--space-1) var(--space-2);
+    }
+
+    .log__meta {
+      display: grid;
+      gap: var(--space-1);
+      padding: var(--space-3);
+      background: var(--c-facade);
+      border-radius: var(--radius-panel);
+    }
+
+    .log__meta dt {
+      color: var(--c-dust);
+      font-size: var(--fs-caption);
+      letter-spacing: 0.06em;
+    }
+
+    .log__meta dd {
+      margin-left: 0;
+      margin-bottom: var(--space-2);
+      color: var(--c-fluorescent);
+      font-size: var(--fs-small);
+      line-height: 1.8;
+    }
+
+    .log__meta dd:last-child {
+      margin-bottom: 0;
+    }
+
+    .log__alts {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+    }
+
+    .log__alt-option {
+      display: block;
+      color: var(--c-fluorescent);
+    }
+
+    .log__alt-why {
+      display: block;
+      color: var(--c-dust);
+    }
+
+    .log__body {
+      margin-top: var(--space-3);
+    }
+
+    .log__body :global(p) {
+      margin-bottom: var(--space-2);
+      color: var(--c-dust);
+    }
+  }
+</style>

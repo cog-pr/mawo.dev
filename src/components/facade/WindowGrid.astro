@@ -1,0 +1,102 @@
+---
+import { getCollection } from 'astro:content';
+import WindowCell from './WindowCell.astro';
+import { buildGridLayout } from './gridLayout';
+import LightPollution from '../sky/LightPollution.astro';
+import VerticalRail from '../rail/VerticalRail.astro';
+
+const works = await getCollection('works', ({ data }) => !data.draft);
+const cells = buildGridLayout(works);
+---
+
+<section id="works" class="window-section">
+  <!--
+    キャプション（作品名）はセル内ではなく nav 要素の座標系（position:relative）を
+    基準に絶対配置される。cell 側は static のままにし、hover/focus-visible の
+    子孫セレクタだけでJSなしに実現している（フェールセーフ要件: JS無効でも全作品が閲覧可能）。
+  -->
+  <LightPollution />
+  <VerticalRail />
+  <nav aria-label="作品一覧" class="window-grid">
+    {cells.map((cell) => <WindowCell cell={cell} />)}
+  </nav>
+</section>
+
+<style>
+  @layer components {
+    .window-section {
+      position: relative;
+      padding: var(--space-6) var(--space-3);
+      background: var(--c-void);
+      /* WebGL初期化までの、あるいは条件を満たさない場合の代替。淡い滲みだけを残す。 */
+      background-image: linear-gradient(
+        to top,
+        color-mix(in srgb, var(--c-signal) 18%, var(--c-void)) 0%,
+        var(--c-void) 45%
+      );
+    }
+
+    /*
+      このセクションは不透明なので、トップページでは固定背景の夜景を
+      せり上がって覆い隠す役割も持つ。境目が直線で切れると切り抜きミスに見えるため、
+      セクションの少し上に暗転の帯を出して、夜景を黒へ溶かしてから覆う。
+    */
+    .window-section::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 100%;
+      height: var(--space-6);
+      pointer-events: none;
+      background: linear-gradient(to bottom, transparent, var(--c-void));
+    }
+
+    /*
+      光害の空（WebGLもCSS代替も）はセクション下端がいちばん明るい。
+      そこでセクションが終わると紫がスパッと切れて境目が見えるので、
+      下端の手前で闇に還す。空が「滲み」として終わるようにするための処理。
+    */
+    .window-section::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: var(--space-6);
+      z-index: 0;
+      pointer-events: none;
+      background: linear-gradient(to bottom, transparent, var(--c-void));
+    }
+
+    .window-grid {
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      max-width: 1600px;
+      margin-inline: auto;
+    }
+
+    @media (min-width: 768px) {
+      .window-grid {
+        grid-template-columns: repeat(6, 1fr);
+      }
+    }
+
+    @media (min-width: 1280px) {
+      .window-grid {
+        grid-template-columns: repeat(8, 1fr);
+      }
+    }
+  }
+</style>
+
+<script>
+  // このセクション内のアイランド（点灯シーケンス / 光害の空 / 縦組みレール）は
+  // まとめて1本のエントリから起動する。コンポーネントごとに <script> を置くと
+  // 小さなチャンクが別々のリクエストになり、初期ロードでフォントと帯域を奪い合う。
+  // 重い本体（GSAP / OGL）は islands.ts 側で動的 import される。
+  import { initIslands } from '../motion/islands';
+  initIslands();
+</script>

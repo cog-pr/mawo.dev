@@ -1,0 +1,89 @@
+---
+const socials = [
+  { href: 'https://github.com/', label: 'GitHub' },
+  { href: 'https://x.com/', label: 'X' },
+];
+---
+
+<footer class="site-footer">
+  <div class="site-footer__inner">
+    <p class="site-footer__lead">お仕事のご相談はこちらから。</p>
+    <a href="mailto:hello@example.com" class="site-footer__contact font-display">
+      hello@example.com
+    </a>
+    <ul class="site-footer__socials font-mono">
+      {
+        socials.map((s) => (
+          <li>
+            <a href={s.href} rel="me noopener noreferrer" target="_blank">
+              {s.label}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+    <p class="site-footer__meta font-mono">© {new Date().getFullYear()}</p>
+  </div>
+</footer>
+
+<style is:global>
+  @layer components {
+    .site-footer {
+      /*
+        position を付けないと「配置されていない要素」扱いになり、
+        トップページの固定背景（.hero__media / position:fixed）のほうが
+        描画順序で上に来てしまい、フッターに夜景が透ける。
+        配置済みにして、DOM順どおり背景の上に乗せる。
+      */
+      position: relative;
+      padding: var(--space-6) var(--space-3) var(--space-5);
+      background: var(--c-void);
+    }
+
+    .site-footer__inner {
+      max-width: 72ch;
+      margin-inline: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-3);
+      text-align: center;
+    }
+
+    .site-footer__lead {
+      color: var(--c-dust);
+    }
+
+    /* --c-sodium はページ全体でここ一箇所だけ。紫の画面の最後に灯る暖色。 */
+    .site-footer__contact {
+      font-size: var(--fs-h2);
+      color: var(--c-sodium);
+      transition: opacity var(--dur-fast) var(--ease-out);
+    }
+
+    .site-footer__contact:hover,
+    .site-footer__contact:focus-visible {
+      opacity: 0.8;
+    }
+
+    .site-footer__socials {
+      display: flex;
+      gap: var(--space-3);
+      font-size: var(--fs-small);
+    }
+
+    .site-footer__socials a {
+      color: var(--c-dust);
+    }
+
+    .site-footer__socials a:hover,
+    .site-footer__socials a:focus-visible {
+      color: var(--c-fluorescent);
+    }
+
+    .site-footer__meta {
+      color: var(--c-dust);
+      font-size: var(--fs-caption);
+    }
+  }
+</style>

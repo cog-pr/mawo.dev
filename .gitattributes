@@ -1,0 +1,13 @@
+# リポジトリ内の改行は LF に統一する。
+# 開発は Windows、CI（GitHub Actions）は Linux なので、
+# 正規化しておかないと差分に改行コードの揺れが混ざる。
+* text=auto eol=lf
+
+# バイナリは変換しない
+*.png binary
+*.ico binary
+*.woff2 binary
+*.avif binary
+*.webp binary
+*.jpg binary
+*.jpeg binary

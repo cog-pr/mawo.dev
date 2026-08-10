@@ -1,0 +1,57 @@
+---
+interface Props {
+  label?: string;
+}
+
+const { label = 'SELECTED WORKS — 2023/2026' } = Astro.props;
+---
+
+{/*
+  抑制の指示（§6.3）: この要素は「あるかないか分からないくらい」で正解。
+  署名要素は窓グリッド1つに絞る方針のため、濃度を上げないこと。
+  装飾であり本文の一部ではないので aria-hidden にする。
+*/}
+<div class="rail" aria-hidden="true">
+  <span class="rail__text font-mono" data-rail-text>{label}</span>
+</div>
+
+<style>
+  @layer components {
+    .rail {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 2rem;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 1;
+    }
+
+    .rail__text {
+      writing-mode: vertical-rl;
+      font-size: var(--fs-caption);
+      letter-spacing: 0.24em;
+      color: var(--c-dust);
+      /* ほとんど目立たない濃度に抑える */
+      opacity: 0.35;
+      padding-block: var(--space-4);
+      white-space: nowrap;
+    }
+
+    /* 狭い画面で本文を圧迫するため非表示 */
+    @media (max-width: 767px) {
+      .rail {
+        display: none;
+      }
+    }
+  }
+</style>
+
+{/*
+  パララックス（本文より遅い速度、係数0.6）の初期化は
+  components/motion/islands.ts が担当する。GSAP は点灯シーケンスと同じチャンクを共有し、
+  装飾なので取得に失敗しても静止したまま成立する。
+*/}

@@ -1,0 +1,56 @@
+name: Lighthouse CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  lighthouse:
+    runs-on: ubuntu-latest
+    # 再生成した metrics.json / フォントを push し返すため
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Fetch source fonts
+        run: npm run fonts:fetch
+
+      # ビルド → サブセット → 再ビルドの順（理由は scripts/subset-fonts.mjs 冒頭）
+      - name: Build
+        run: npm run build:full
+
+      # 予算割れ（lighthouserc.json の assert）でここが失敗し、ビルドが落ちる
+      - name: Run Lighthouse CI
+        run: npx --yes @lhci/cli@0.14.x autorun
+
+      # 「このサイトについて」ページが読む metrics.json を実測値で更新する
+      - name: Regenerate metrics.json
+        if: github.event_name == 'push'
+        run: npm run metrics:build
+
+      # サブセット結果（フォントと unicode-range）もビルドで再生成される。
+      # コンテンツを足したのに fonts:subset を回し忘れた場合、
+      # コミット済みのフォントは字形が欠けたままになるのでここで揃える。
+      - name: Commit regenerated artifacts
+        if: github.event_name == 'push'
+        run: |
+          paths="src/data/metrics.json public/fonts src/styles/fonts-jp.generated.css"
+          if git diff --quiet -- $paths; then
+            echo "no changes"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add $paths
+          git commit -m "chore: update metrics and font subsets [skip ci]"
+          git push

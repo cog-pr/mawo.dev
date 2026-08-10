@@ -1,0 +1,52 @@
+/*
+  デザイントークン。生の16進数・生の px 値はここ以外に書かない。
+  §1.1: 闇が主役で、光は例外である。--c-signal の画面占有面積は常に10%以下。
+*/
+:root {
+  /* --- カラー --- */
+  --c-void: #000000; /* 画面の大半。純黒 */
+  --c-facade: #0b0a14; /* 面・カード。わずかに紫に振った黒 */
+  --c-facade-lit: #1a0740; /* 微光。作品セルの待機状態 */
+  --c-signal: #4805f1; /* 主役。アイコンと同一。総面積10%以下厳守 */
+  --c-fluorescent: #f2f0ff; /* 見出し。蛍光灯の青白さ */
+  --c-dust: #8b87a3; /* 本文。紫を落とした灰 */
+  --c-sodium: #ff7a18; /* ナトリウム灯。1ページ1箇所のみ（フッター） */
+
+  /* --- タイポグラフィ --- */
+  --font-display: 'Archivo Variable', sans-serif;
+  --font-jp: 'Zen Kaku Gothic New', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+
+  --fs-display: clamp(2.5rem, 8vw, 7rem);
+  --fs-h1: clamp(1.75rem, 4vw, 3rem);
+  --fs-h2: clamp(1.375rem, 2.5vw, 2rem);
+  --fs-body: 1rem;
+  --fs-small: 0.8125rem;
+  --fs-caption: 0.75rem;
+
+  --lh-jp-body: 1.9;
+  --lh-display: 1.05;
+
+  /* --- スペーシング --- */
+  --space-1: 0.5rem;
+  --space-2: 1rem;
+  --space-3: 1.5rem;
+  --space-4: 2.5rem;
+  --space-5: 4rem;
+  --space-6: 8rem;
+
+  /* --- モーション ---
+     点灯は速く、消灯は遅く。点くのは一瞬、消えるのは余韻を残して。 */
+  --dur-instant: 120ms;
+  --dur-fast: 240ms;
+  --dur-base: 480ms;
+  --dur-slow: 900ms;
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-inout: cubic-bezier(0.65, 0, 0.35, 1);
+
+  /* --- 角丸 --- */
+  --radius-cell: 2px; /* 窓セル。ほぼ直角 */
+  --radius-panel: 4px; /* カード・パネル */
+  --radius-button: 2px; /* ボタン */
+}

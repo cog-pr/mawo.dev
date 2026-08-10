@@ -1,0 +1,27 @@
+<div class="sky" data-sky-container aria-hidden="true"></div>
+
+<style>
+  @layer components {
+    .sky {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .sky :global(canvas) {
+      display: block;
+    }
+  }
+</style>
+
+{/*
+  初期化は components/motion/islands.ts が担当する（このセクションの
+  アイランドを1本のエントリにまとめ、初期リクエスト数を抑えるため）。
+  遅延ロード条件（すべて満たしたときのみ canvas を作る）:
+    1. IntersectionObserver でセクションが視界に入った
+    2. requestIdleCallback でメインスレッドが空いた（未対応時は setTimeout(300)）
+    3. prefers-reduced-motion: reduce ではない
+    4. navigator.connection.saveData が true ではない
+  満たさない場合、canvas は初期化されず、上の CSS グラデーションが代替として残る。
+*/}

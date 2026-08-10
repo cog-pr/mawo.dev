@@ -1,0 +1,193 @@
+---
+// 演出のBefore/Afterデモ: 窓グリッドの点灯シーケンスの stagger / duration を
+// その場で変更して再生できる。このページ自体が作品である、という趣旨の実装（§5.3-3）。
+// セル配置はトップの窓グリッドと同じ決定論的な考え方で、ここでは固定パターンを使う。
+const DEMO_CELLS = [
+  1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1,
+];
+---
+
+<figure class="demo">
+  <div class="demo__grid" data-demo-grid>
+    {
+      DEMO_CELLS.map((lit) =>
+        lit === 1 ? (
+          <span class="demo__cell demo__cell--lit" data-demo-cell></span>
+        ) : (
+          <span class="demo__cell"></span>
+        )
+      )
+    }
+  </div>
+
+  <div class="demo__controls">
+    <div class="demo__control">
+      <label class="font-mono" for="demo-stagger">
+        stagger <output data-demo-out="stagger">0.04</output>s
+      </label>
+      <input
+        id="demo-stagger"
+        type="range"
+        min="0"
+        max="0.2"
+        step="0.01"
+        value="0.04"
+        data-demo-input="stagger"
+      />
+    </div>
+
+    <div class="demo__control">
+      <label class="font-mono" for="demo-duration">
+        duration <output data-demo-out="duration">0.30</output>s
+      </label>
+      <input
+        id="demo-duration"
+        type="range"
+        min="0.05"
+        max="1.2"
+        step="0.05"
+        value="0.3"
+        data-demo-input="duration"
+      />
+    </div>
+
+    <button type="button" class="demo__replay font-mono" data-demo-replay>
+      REPLAY
+    </button>
+  </div>
+
+  <figcaption class="demo__caption font-mono">
+    実際にトップページで使っている値は stagger 0.04s / duration 0.3s。
+    大きくすると「点灯していく過程」が主役になりすぎ、窓グリッド以外の要素が待たされる。
+  </figcaption>
+</figure>
+
+<style>
+  @layer components {
+    .demo {
+      margin: 0;
+      padding: var(--space-3);
+      background: var(--c-facade);
+      border-radius: var(--radius-panel);
+    }
+
+    .demo__grid {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 6px;
+    }
+
+    .demo__cell {
+      aspect-ratio: 3 / 4;
+      border-radius: var(--radius-cell);
+      background: var(--c-void);
+    }
+
+    /* JSが動かなくても最終状態（微光）で描画されている */
+    .demo__cell--lit {
+      background: var(--c-facade-lit);
+    }
+
+    .demo__controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: end;
+      gap: var(--space-3);
+      margin-top: var(--space-3);
+    }
+
+    .demo__control {
+      display: flex;
+      flex-direction: column;
+      gap: 0.375rem;
+      min-width: 12rem;
+      flex: 1;
+    }
+
+    .demo__control label {
+      color: var(--c-dust);
+      font-size: var(--fs-caption);
+      letter-spacing: 0.06em;
+    }
+
+    .demo__control output {
+      color: var(--c-fluorescent);
+    }
+
+    .demo__control input[type='range'] {
+      width: 100%;
+      accent-color: var(--c-signal);
+    }
+
+    .demo__replay {
+      padding: 0.5rem var(--space-2);
+      background: transparent;
+      color: var(--c-fluorescent);
+      border: 1px solid var(--c-dust);
+      border-radius: var(--radius-button);
+      font-size: var(--fs-caption);
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      transition:
+        border-color var(--dur-fast) var(--ease-out),
+        color var(--dur-fast) var(--ease-out);
+    }
+
+    .demo__replay:hover,
+    .demo__replay:focus-visible {
+      border-color: var(--c-signal);
+    }
+
+    .demo__caption {
+      margin-top: var(--space-3);
+      color: var(--c-dust);
+      font-size: var(--fs-caption);
+      line-height: 1.8;
+    }
+  }
+</style>
+
+<script>
+  // スライダー操作時のみ GSAP を取得する。ページ読み込み時には落とさない。
+  import { prefersReducedMotion } from '../motion/motionGuard';
+
+  const grid = document.querySelector<HTMLElement>('[data-demo-grid]');
+  const replay = document.querySelector<HTMLButtonElement>('[data-demo-replay]');
+  const inputs = document.querySelectorAll<HTMLInputElement>('[data-demo-input]');
+
+  if (grid && replay) {
+    const values = { stagger: 0.04, duration: 0.3 };
+
+    const syncOutput = (key: string, value: number) => {
+      const out = document.querySelector<HTMLOutputElement>(`[data-demo-out="${key}"]`);
+      if (out) out.textContent = key === 'stagger' ? value.toFixed(2) : value.toFixed(2);
+    };
+
+    let play: ((v: { stagger: number; duration: number }) => void) | null = null;
+    let loading = false;
+
+    async function ensureLoaded() {
+      if (play || loading || prefersReducedMotion()) return;
+      loading = true;
+      const { createDemoPlayer } = await import('./igniteDemo');
+      play = createDemoPlayer(grid!);
+      loading = false;
+    }
+
+    inputs.forEach((input) => {
+      input.addEventListener('input', async () => {
+        const key = input.dataset.demoInput!;
+        const value = Number(input.value);
+        values[key as keyof typeof values] = value;
+        syncOutput(key, value);
+        await ensureLoaded();
+        play?.(values);
+      });
+    });
+
+    replay.addEventListener('click', async () => {
+      await ensureLoaded();
+      play?.(values);
+    });
+  }
+</script>

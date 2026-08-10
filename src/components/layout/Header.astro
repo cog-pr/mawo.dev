@@ -1,0 +1,65 @@
+---
+const nav = [{ href: '/about-this-site', label: 'ABOUT THIS SITE' }];
+---
+
+<header class="site-header">
+  <a href="/" class="site-header__mark font-mono">WINDOWS AT NIGHT</a>
+  <nav class="site-header__nav font-mono" aria-label="サイトナビゲーション">
+    {
+      nav.map((item) => (
+        <a href={item.href}>{item.label}</a>
+      ))
+    }
+  </nav>
+</header>
+
+<style is:global>
+  @layer components {
+    .site-header {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--space-2) var(--space-3);
+      font-size: var(--fs-caption);
+      letter-spacing: 0.04em;
+    }
+
+    /*
+      ヘッダーは背景の上に重なるため、下に何が来ても本文コントラスト 4.5:1（§1.3）
+      を割らないよう、自前で薄い暗幕を持つ。
+      トップの写真背景ではネオンの上にナビが乗って 3.3:1 まで落ちていた。
+      背景が --c-void のページでは黒→透明なので見た目に影響しない。
+    */
+    .site-header::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      background: linear-gradient(
+        to bottom,
+        var(--c-void) 0%,
+        color-mix(in srgb, var(--c-void) 72%, transparent) 55%,
+        transparent 100%
+      );
+    }
+
+    .site-header__mark {
+      color: var(--c-fluorescent);
+    }
+
+    .site-header__nav a {
+      color: var(--c-dust);
+    }
+
+    .site-header__nav a:hover,
+    .site-header__nav a:focus-visible {
+      color: var(--c-fluorescent);
+    }
+  }
+</style>

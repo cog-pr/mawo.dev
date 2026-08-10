@@ -1,0 +1,2 @@
+/* カスケードレイヤーの優先順位を先頭で宣言する。後のレイヤーほど優先度が高い。 */
+@layer reset, base, components, utilities;

@@ -1,0 +1,217 @@
+---
+import { Image } from 'astro:assets';
+import Base from '../layouts/Base.astro';
+import WindowGrid from '../components/facade/WindowGrid.astro';
+import heroImage from '../assets/hero.png';
+---
+
+<Base
+  title="Selected Works"
+  description="制作物を夜のビルの窓として見せるポートフォリオ。窓ひとつが作品ひとつ。"
+>
+  <section class="hero">
+    {/*
+      背景写真。装飾なので alt=""（読み上げ対象にしない）。
+
+      fetchpriority は **low**。実測するとこのページの LCP要素は画像ではなく
+      ヒーローのテキスト（hero__role）で、画像を high にすると帯域を奪って
+      文字の描画が遅れ、LCP が 1.86s → 2.19s に悪化した。
+      画面には出るが「文字より後でよい」ので優先度を落とす。
+
+      暗く沈めて使うので quality は低くてよい（この暗さでは劣化が見えない）。
+      widths はモバイルが不要に大きい版を取らないための刻み。
+    */}
+    <div class="hero__media" aria-hidden="true">
+      <Image
+        src={heroImage}
+        alt=""
+        widths={[480, 768, 1100, 1600]}
+        sizes="100vw"
+        format="avif"
+        quality={35}
+        loading="eager"
+        fetchpriority="low"
+        class="hero__image"
+      />
+    </div>
+
+    <h1 class="hero__title font-display">
+      <span class="hero__line" style="--i: 0">WINDOWS</span>
+      <span class="hero__line" style="--i: 1">AT NIGHT</span>
+    </h1>
+    <p class="hero__role font-mono" style="--i: 2">Designer / Developer</p>
+    <a href="#works" class="hero__scroll" aria-label="SCROLL — 窓グリッドへ">
+      <span class="hero__scroll-track" aria-hidden="true"></span>
+      <span class="font-mono hero__scroll-label">SCROLL</span>
+    </a>
+  </section>
+  <WindowGrid />
+</Base>
+
+<style>
+  @layer components {
+    .hero {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: center;
+      gap: var(--space-2);
+      min-height: 100svh;
+      padding: var(--space-3);
+      /* 画像が来なくても（読み込み失敗・低速時）成立する土台 */
+      background: var(--c-void);
+      overflow: hidden;
+    }
+
+    /*
+      §1.1「闇が主役で、光は例外である」を写真でも守るための処理。
+      色相は殺さない（紫以外の装飾色は許容 — 仕様書 §1.2 の補足）が、
+      明度と面積を落として、光っている部分が画面の一部に留まるようにする。
+    */
+    /*
+      背景はビューポートに固定し、コンテンツ側だけがその上を流れていく。
+      スクロールすると窓グリッドセクション（不透明な --c-void）が
+      せり上がってきて、止まったままの夜景を覆い隠す。
+
+      position: fixed なので .hero の overflow: hidden では切られない
+      （固定要素の包含ブロックはビューポート）。
+    */
+    .hero__media {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+    }
+
+    /*
+      固定背景はスクロールと画面のズレを生む＝視差表現にあたるため、
+      reduced-motion では通常どおりヒーローと一緒に流す（§1.3）。
+    */
+    @media (prefers-reduced-motion: reduce) {
+      .hero__media {
+        position: absolute;
+      }
+    }
+
+    .hero__image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      /*
+        全体を一律に暗くするとネオンまで潰れ、ただの濁った写真になる。
+        contrast を上げて **暗部だけ黒に沈め、光点は残す**。
+        結果として「画面の大半は闇、光は一部に集中」という §1.1 の構図が
+        写真のままでも成立する。
+      */
+      opacity: 0.72;
+      filter: brightness(0.72) contrast(1.5) saturate(1.05);
+    }
+
+    /*
+      文字が乗る左下方向を重点的に暗くするスクリム。
+      本文コントラスト 4.5:1 以上（§1.3）を写真の上でも確保するため。
+    */
+    .hero__media::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(
+          to right,
+          color-mix(in srgb, var(--c-void) 92%, transparent) 0%,
+          color-mix(in srgb, var(--c-void) 62%, transparent) 38%,
+          transparent 72%
+        ),
+        linear-gradient(
+          to top,
+          var(--c-void) 0%,
+          color-mix(in srgb, var(--c-void) 45%, transparent) 30%,
+          transparent 58%
+        );
+    }
+
+    /* 文字と誘導は画像より前面へ */
+    .hero__title,
+    .hero__role,
+    .hero__scroll {
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero__title {
+      font-size: var(--fs-display);
+      line-height: var(--lh-display);
+      color: var(--c-fluorescent);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .hero__line {
+      display: block;
+      /* JSに依存せず、静的HTML＋CSSのみで最初からフェードインする（ヒーローはLCP要素） */
+      animation: line-in var(--dur-slow) var(--ease-out) both;
+      animation-delay: calc(var(--i) * 120ms);
+    }
+
+    .hero__role {
+      color: var(--c-dust);
+      font-size: var(--fs-small);
+      letter-spacing: 0.08em;
+      animation: line-in var(--dur-slow) var(--ease-out) both;
+      animation-delay: calc(var(--i) * 120ms);
+    }
+
+    .hero__scroll {
+      position: absolute;
+      bottom: var(--space-4);
+      left: var(--space-3);
+      display: flex;
+      align-items: center;
+      gap: var(--space-1);
+      color: var(--c-dust);
+    }
+
+    .hero__scroll-label {
+      font-size: var(--fs-caption);
+      letter-spacing: 0.1em;
+    }
+
+    .hero__scroll-track {
+      width: 1px;
+      height: 1.5rem;
+      background: var(--c-dust);
+      animation: scroll-hint var(--dur-slow) var(--ease-inout) infinite;
+    }
+
+    @keyframes line-in {
+      from {
+        opacity: 0;
+        transform: translateY(0.6em);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes scroll-hint {
+      0%,
+      100% {
+        transform: translateY(0);
+      }
+      50% {
+        transform: translateY(4px);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .hero__line,
+      .hero__role,
+      .hero__scroll-track {
+        animation: none;
+        opacity: 1;
+        transform: none;
+      }
+    }
+  }
+</style>

@@ -1,0 +1,75 @@
+@layer base {
+  body {
+    background: var(--c-void);
+    color: var(--c-dust);
+    font-family: var(--font-jp);
+    font-size: var(--fs-body);
+  }
+
+  h1,
+  h2,
+  h3 {
+    color: var(--c-fluorescent);
+    font-family: var(--font-jp);
+    line-height: var(--lh-display);
+    font-weight: 700;
+  }
+
+  p {
+    line-height: var(--lh-jp-body);
+  }
+
+  /*
+    Archivo は wght 700 / wdth 80 の単一インスタンスしか積んでいない（fonts.css 参照）。
+    ここで weight を固定して、意図せず別ウェイトを要求しないようにする。
+  */
+  .font-display {
+    font-family: var(--font-display), var(--font-jp);
+    font-weight: 700;
+  }
+
+  .font-mono {
+    font-family: var(--font-mono);
+    font-feature-settings: 'tnum' 1;
+  }
+
+  a {
+    transition: color var(--dur-fast) var(--ease-out);
+  }
+
+  /* キーボード操作のフォーカスリングは常に視認できること */
+  :focus-visible {
+    outline: 2px solid var(--c-signal);
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background: var(--c-signal);
+    color: var(--c-fluorescent);
+  }
+
+  /*
+    汎用スクロールリビール（components/motion/reveal.ts）。
+    is-reveal-pending は JS が動いたときにだけ付く。CSS 側で最初から隠さないこと
+    ——JSが落ちても本文が読めなくならないようにするため。
+  */
+  .is-reveal-pending {
+    opacity: 0;
+    transform: translateY(1rem);
+  }
+
+  .is-reveal-pending.is-revealed {
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity var(--dur-base) var(--ease-out),
+      transform var(--dur-base) var(--ease-out);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .is-reveal-pending {
+      opacity: 1;
+      transform: none;
+    }
+  }
+}

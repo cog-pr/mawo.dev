@@ -1,0 +1,22 @@
+{
+  "measuredAt": "2026-08-09T13:59:09.209Z",
+  "environment": "Lighthouse (mobile, simulated throttling, gzip配信)",
+  "scores": {
+    "performance": 99,
+    "accessibility": 100,
+    "bestPractices": 100,
+    "seo": 100
+  },
+  "vitals": {
+    "lcpMs": 1876,
+    "cls": 0,
+    "tbtMs": 10,
+    "fcpMs": 1441
+  },
+  "budget": {
+    "initialJsGzipBytes": 6139,
+    "initialJsFileCount": 2,
+    "fontsBytes": 128340,
+    "fontsFileCount": 5
+  }
+}
