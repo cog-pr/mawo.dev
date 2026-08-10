@@ -1,0 +1,64 @@
+---
+import Base from '../layouts/Base.astro';
+---
+
+<Base
+  title="404"
+  description="お探しのページは見つかりませんでした。"
+>
+  <section class="notfound">
+    <p class="notfound__code font-display">404</p>
+    <h1 class="notfound__title">この窓に明かりは灯っていません。</h1>
+    <p class="notfound__body">
+      お探しのページは見つかりませんでした。
+      URLが変わったか、もともと存在しないアドレスの可能性があります。
+    </p>
+    <a href="/" class="notfound__back font-mono">&larr; 作品一覧へ戻る</a>
+  </section>
+</Base>
+
+<style>
+  @layer components {
+    .notfound {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: center;
+      gap: var(--space-2);
+      min-height: 100svh;
+      max-width: 72ch;
+      margin-inline: auto;
+      padding: var(--space-3);
+    }
+
+    /*
+      唯一の光。§1.1 の「闇が主役で、光は例外」をこのページでも守る。
+      グローは付けない（例外は窓グリッドのホバーのみ）。
+    */
+    .notfound__code {
+      font-size: var(--fs-display);
+      line-height: 1;
+      color: var(--c-signal);
+    }
+
+    .notfound__title {
+      font-size: var(--fs-h2);
+      color: var(--c-fluorescent);
+    }
+
+    .notfound__body {
+      color: var(--c-dust);
+    }
+
+    .notfound__back {
+      margin-top: var(--space-3);
+      color: var(--c-dust);
+      font-size: var(--fs-small);
+    }
+
+    .notfound__back:hover,
+    .notfound__back:focus-visible {
+      color: var(--c-fluorescent);
+    }
+  }
+</style>

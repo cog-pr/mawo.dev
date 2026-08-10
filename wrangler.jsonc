@@ -1,0 +1,36 @@
+/**
+ * Cloudflare Workers（Static Assets）の配信設定。
+ *
+ * このサイトは完全な静的出力なので Worker スクリプト（main）は持たない。
+ * assets だけを宣言した「アセットのみ」の Worker として配信する。
+ *
+ * なぜ Pages ではなく Workers かは src/content/notes/05-workers-over-pages.md に記録。
+ * 要点は「静的配信の結果は両者で同じだが、Workers のほうが将来の選択肢が広く、
+ * 今なら移行コストがゼロで済む」こと。
+ */
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "mawo-dev",
+
+  // インストール済みの workerd がサポートする範囲に収めること。
+  // これより新しい日付にすると `wrangler dev` がローカルで起動しない
+  // （"newest date supported by this server binary" のエラーになる）。
+  // 上げるときは wrangler も一緒に更新する。
+  "compatibility_date": "2026-08-08",
+
+  "assets": {
+    "directory": "./dist/",
+
+    // 存在しないURLでは自前の 404 ページを返す。
+    // 既定のままだと Cloudflare の素っ気ないエラー画面になる。
+    "not_found_handling": "404-page",
+
+    // Astro は /works/foo/index.html の形で出力するので、
+    // 末尾スラッシュを自動で解決する既定の挙動が合っている。
+    "html_handling": "auto-trailing-slash"
+  },
+
+  "observability": {
+    "enabled": true
+  }
+}
