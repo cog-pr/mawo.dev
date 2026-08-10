@@ -35,12 +35,35 @@ function readColorToken(name: string): [number, number, number] {
   return hexToRgb(value);
 }
 
+/**
+ * GPUを持たない環境（CIのヘッドレスLinux、GPUが無効な端末）では
+ * WebGL が SwiftShader / llvmpipe によるソフトウェア描画にフォールバックする。
+ * 全画面のfBmシェーダーを毎フレームCPUで解くことになり、実測でメインスレッドを
+ * 10秒近く占有した（GitHub Actions で TBT 2180ms / Performance 0.71）。
+ *
+ * 空は「気づかれない」ことが正解の装飾なので、こういう環境では初期化せず
+ * CSSの静的グラデーションに任せる。§6.2 のロード条件と同じ性質の判定。
+ */
+function isSoftwareRenderer(gl: WebGLRenderingContext): boolean {
+  const dbg = gl.getExtension('WEBGL_debug_renderer_info');
+  if (!dbg) return false;
+  const name = String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) ?? '');
+  return /swiftshader|llvmpipe|software|basic render/i.test(name);
+}
+
 export function initSky(container: HTMLElement): void {
   const renderer = new Renderer({
     dpr: Math.min(window.devicePixelRatio || 1, 1.5),
     alpha: false,
   });
   const gl = renderer.gl;
+
+  // canvas を挿す前に判定し、ソフトウェア描画なら何も足さずに撤退する
+  if (isSoftwareRenderer(gl)) {
+    gl.getExtension('WEBGL_lose_context')?.loseContext();
+    return;
+  }
+
   gl.canvas.style.display = 'block';
   gl.canvas.style.width = '100%';
   gl.canvas.style.height = '100%';
@@ -67,10 +90,20 @@ export function initSky(container: HTMLElement): void {
 
   const start = performance.now();
   let rafId: number | null = null;
+  let lastDraw = 0;
+
+  /*
+    時間係数が u_time * 0.02 と極端に遅いので、60fps で回す意味がない。
+    描画を間引いても見た目は変わらず、GPU/ラスタライズ負荷だけが下がる。
+  */
+  const FRAME_INTERVAL_MS = 1000 / 20;
 
   function frame(now: number) {
-    program.uniforms.u_time.value = (now - start) / 1000;
-    renderer.render({ scene: mesh });
+    if (now - lastDraw >= FRAME_INTERVAL_MS) {
+      lastDraw = now;
+      program.uniforms.u_time.value = (now - start) / 1000;
+      renderer.render({ scene: mesh });
+    }
     rafId = requestAnimationFrame(frame);
   }
 
