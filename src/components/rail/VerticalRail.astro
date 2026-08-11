@@ -1,17 +1,32 @@
 ---
 interface Props {
   label?: string;
+  /** 縦看板の和文。ネオン管として光らせる主役 */
+  sign?: string;
 }
 
-const { label = 'SELECTED WORKS — 2023/2026' } = Astro.props;
+const { label = 'SELECTED WORKS — 2023/2026', sign = '夜光' } = Astro.props;
 ---
 
 {/*
-  抑制の指示（§6.3）: この要素は「あるかないか分からないくらい」で正解。
-  署名要素は窓グリッド1つに絞る方針のため、濃度を上げないこと。
-  装飾であり本文の一部ではないので aria-hidden にする。
+  日本の街の縦看板。仕様書 §6.3（2026-08-11 改訂）で抑制指示を撤回し、
+  ネオン管として光らせている。管の描き方は §6.4 / src/styles/neon.css に従う。
+
+  装飾であり本文の一部ではないので aria-hidden。
+  本文の領域には被せない（幅を持たせて右端に固定し、pointer-events も切る）。
 */}
 <div class="rail" aria-hidden="true">
+  <div class="rail__sign neon-spill">
+    {/* 看板の枠。上下の管で挟んで「看板」の形にする */}
+    <span class="rail__bar neon-tube"></span>
+
+    <span class="rail__chars neon neon-flicker">
+      {sign.split('').map((c) => <span class="rail__char">{c}</span>)}
+    </span>
+
+    <span class="rail__bar neon-tube"></span>
+  </div>
+
   <span class="rail__text font-mono" data-rail-text>{label}</span>
 </div>
 
@@ -21,27 +36,57 @@ const { label = 'SELECTED WORKS — 2023/2026' } = Astro.props;
       position: absolute;
       top: 0;
       right: 0;
-      width: 2rem;
+      width: 3.5rem;
       height: 100%;
       display: flex;
-      justify-content: center;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-4);
+      padding-block: var(--space-5);
       pointer-events: none;
       overflow: hidden;
       z-index: 1;
     }
 
+    /* --- ネオンの縦看板 --- */
+    .rail__sign {
+      /* 管の色。紫縛りはしない（§1.2 改訂）。ここはシアンで街の看板らしさを出す */
+      --neon-hue: var(--neon-cyan);
+      --neon-core: var(--neon-cyan-core);
+      --neon-strength: 1;
+
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    /* 看板を挟む上下の管 */
+    .rail__bar {
+      width: 1.5rem;
+      height: 2px;
+      border-radius: 1px;
+    }
+
+    .rail__chars {
+      writing-mode: vertical-rl;
+      font-family: var(--font-jp);
+      font-weight: 700;
+      font-size: 1.375rem;
+      letter-spacing: 0.18em;
+      line-height: 1.15;
+    }
+
+    /* --- 現在地テキスト（従来のレール） --- */
     .rail__text {
       writing-mode: vertical-rl;
       font-size: var(--fs-caption);
       letter-spacing: 0.24em;
       color: var(--c-dust);
-      /* ほとんど目立たない濃度に抑える */
-      opacity: 0.35;
-      padding-block: var(--space-4);
       white-space: nowrap;
     }
 
-    /* 狭い画面で本文を圧迫するため非表示 */
+    /* 狭い画面で本文を圧迫するため非表示（§6.3） */
     @media (max-width: 767px) {
       .rail {
         display: none;
