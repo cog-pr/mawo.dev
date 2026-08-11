@@ -11,7 +11,7 @@ const socials = [
 <footer class="site-footer">
   <div class="site-footer__inner">
     <p class="site-footer__lead">お仕事のご相談はこちらから。</p>
-    <a href={`mailto:${contactEmail}`} class="site-footer__contact font-display neon">
+    <a href={`mailto:${contactEmail}`} class="site-footer__contact font-display">
       {contactEmail}
     </a>
     <ul class="site-footer__socials font-mono">
@@ -58,23 +58,22 @@ const socials = [
     }
 
     /*
-      ページ最後に灯る暖色。ナトリウム灯の系統を保ったまま、
-      ネオン管として光らせる（§6.4）。管の色は amber。
+      --c-sodium はページ全体でここ一箇所だけ。紫の画面の最後に灯る暖色。
+
+      ここはネオン管にしない。一度ネオン化を試したが、
+      メールアドレスが光ると装飾が主張しすぎて品がなかった。
+      連絡先は「読ませるもの」で、看板ではない。
+      ネオンは §6.4 に従い、看板的な要素にだけ使う。
     */
     .site-footer__contact {
-      --neon-hue: var(--neon-amber);
-      --neon-core: var(--neon-amber-core);
-      --neon-strength: 0.85;
-
       font-size: var(--fs-h2);
-      transition: --neon-strength var(--dur-base) var(--ease-out);
+      color: var(--c-sodium);
+      transition: opacity var(--dur-fast) var(--ease-out);
     }
 
-    /* ホバーで管が強く灯る。点灯は速く、消灯は遅く（§3.3） */
     .site-footer__contact:hover,
     .site-footer__contact:focus-visible {
-      --neon-strength: 1.35;
-      transition: --neon-strength var(--dur-fast) var(--ease-out);
+      opacity: 0.8;
     }
 
     .site-footer__socials {
