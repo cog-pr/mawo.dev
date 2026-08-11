@@ -1,4 +1,7 @@
 ---
+// 連絡先。表示文字列とmailtoを二重に書くとズレるので一箇所で持つ。
+const contactEmail = 'contact@mawo.dev';
+
 const socials = [
   { href: 'https://github.com/', label: 'GitHub' },
   { href: 'https://x.com/', label: 'X' },
@@ -8,8 +11,8 @@ const socials = [
 <footer class="site-footer">
   <div class="site-footer__inner">
     <p class="site-footer__lead">お仕事のご相談はこちらから。</p>
-    <a href="mailto:hello@example.com" class="site-footer__contact font-display">
-      hello@example.com
+    <a href={`mailto:${contactEmail}`} class="site-footer__contact font-display">
+      {contactEmail}
     </a>
     <ul class="site-footer__socials font-mono">
       {
