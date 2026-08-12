@@ -1,0 +1,218 @@
+---
+import { Image } from 'astro:assets';
+import icon from '../../assets/mawo_icon.png';
+
+/*
+  プロフィール。ヒーローと窓グリッドの間に置く。
+
+  見せ方は「灯っている窓」。サイトの概念（1つの窓 = 1つの中身）をそのまま使い、
+  作品ではなく人が入っている窓として提示する。
+  アイコンがPCに向かう後ろ姿なので、窓の中を覗いている構図になる。
+
+  ※ 本文とスキルは仮置き。実際の内容に差し替えること。
+*/
+const name = 'まを';
+const nameEn = 'mawo';
+const role = 'Designer / Developer';
+
+// TODO: 実際の自己紹介に差し替える
+const bio = [
+  '夜の街の看板や窓明かりのように、目に入った瞬間に意味が伝わるものを作りたいと思っています。',
+  '設計から実装まで一人で通すことが多く、見た目と速度のどちらも落とさない落としどころを探すのが好きです。',
+];
+
+// TODO: 実際に使う技術に差し替える
+const skills = ['Astro', 'TypeScript', 'WebGL / OGL', 'GSAP', 'Cloudflare Workers', 'CSS'];
+---
+
+<section class="profile" aria-labelledby="profile-heading">
+  <div class="profile__inner">
+    {/* 灯っている窓。中にいるのが本人という見立て */}
+    <div class="profile__window">
+      <Image
+        src={icon}
+        alt={`${nameEn} のアイコン`}
+        widths={[260, 520]}
+        sizes="(min-width: 768px) 260px, 60vw"
+        format="avif"
+        quality={70}
+        loading="lazy"
+        class="profile__icon"
+      />
+    </div>
+
+    <div class="profile__body">
+      <h2 class="profile__label font-mono" id="profile-heading">ABOUT</h2>
+
+      <p class="profile__name">
+        <span class="profile__name-jp">{name}</span>
+        <span class="profile__name-en font-mono">{nameEn}</span>
+      </p>
+      <p class="profile__role font-mono">{role}</p>
+
+      {bio.map((line) => <p class="profile__bio">{line}</p>)}
+
+      <dl class="profile__skills">
+        <dt class="font-mono">SKILLS</dt>
+        <dd>
+          <ul class="font-mono">
+            {skills.map((s) => <li>{s}</li>)}
+          </ul>
+        </dd>
+      </dl>
+    </div>
+  </div>
+</section>
+
+<style>
+  @layer components {
+    .profile {
+      position: relative;
+      padding: var(--space-6) var(--space-3) var(--space-5);
+      background: var(--c-void);
+    }
+
+    .profile__inner {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      gap: var(--space-5);
+      align-items: start;
+      /*
+        本文を 46ch で畳んでいるので、器を広く取ると右側が間延びする。
+        窓と本文が一塊に見える幅で止める。
+      */
+      max-width: 54rem;
+      margin-inline: auto;
+    }
+
+    /*
+      窓。グリッドのセルと同じ 3:4 / 角丸2px で「同じ建物の窓」に見せる。
+      アイコンは正方形の円構図なので cover で切らず contain で収める。
+      アイコン自身の地色が --c-facade とほぼ同じ (1,1,21) なので継ぎ目が出ない。
+    */
+    .profile__window {
+      /*
+        窓の地色。トークンではなくアイコン画像自身の地色に合わせている。
+
+        アイコンは正方形、窓は 3:4 なので contain すると上下に帯が出る。
+        ここを --c-facade にすると、アイコンの地色 rgb(1,1,21) との差
+        （約10段階）が帯としてはっきり見えてしまう。画像に合わせて継ぎ目を消す。
+        アイコンを差し替えたらこの値も合わせ直すこと。
+      */
+      --profile-window-bg: rgb(1 1 21);
+
+      aspect-ratio: 3 / 4;
+      border-radius: var(--radius-cell);
+      background: var(--profile-window-bg);
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      /* 灯っている窓なので、わずかに光を持たせる */
+      box-shadow: 0 0 40px -12px color-mix(in srgb, var(--c-signal) 60%, transparent);
+    }
+
+    .profile__icon {
+      width: 100%;
+      height: auto;
+      object-fit: contain;
+    }
+
+    /* --- 本文 --- */
+    .profile__body {
+      padding-top: var(--space-1);
+    }
+
+    .profile__label {
+      color: var(--c-dust);
+      font-size: var(--fs-caption);
+      font-weight: 400;
+      letter-spacing: 0.16em;
+      margin-bottom: var(--space-3);
+    }
+
+    .profile__name {
+      display: flex;
+      align-items: baseline;
+      gap: var(--space-2);
+      flex-wrap: wrap;
+    }
+
+    .profile__name-jp {
+      font-size: var(--fs-h1);
+      font-weight: 700;
+      color: var(--c-fluorescent);
+      line-height: var(--lh-display);
+    }
+
+    .profile__name-en {
+      font-size: var(--fs-small);
+      color: var(--c-dust);
+      letter-spacing: 0.1em;
+    }
+
+    .profile__role {
+      margin-top: var(--space-1);
+      color: var(--c-dust);
+      font-size: var(--fs-small);
+      letter-spacing: 0.08em;
+    }
+
+    .profile__bio {
+      margin-top: var(--space-3);
+      color: var(--c-dust);
+      max-width: 46ch;
+    }
+
+    .profile__skills {
+      margin-top: var(--space-4);
+    }
+
+    .profile__skills dt {
+      color: var(--c-dust);
+      font-size: var(--fs-caption);
+      letter-spacing: 0.16em;
+      margin-bottom: var(--space-2);
+    }
+
+    .profile__skills dd {
+      margin-left: 0;
+    }
+
+    .profile__skills ul {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-1) var(--space-2);
+      font-size: var(--fs-small);
+      color: var(--c-fluorescent);
+    }
+
+    /* 技術名の頭に灯を1つ。窓明かりの見立てを小さく反復させる */
+    .profile__skills li {
+      display: flex;
+      align-items: center;
+      gap: 0.5em;
+    }
+
+    .profile__skills li::before {
+      content: '';
+      width: 5px;
+      height: 7px;
+      border-radius: 1px;
+      background: var(--c-facade-lit);
+      box-shadow: 0 0 8px -2px var(--c-signal);
+    }
+
+    @media (max-width: 767px) {
+      .profile__inner {
+        grid-template-columns: 1fr;
+        gap: var(--space-4);
+        justify-items: start;
+      }
+
+      .profile__window {
+        width: 60vw;
+        max-width: 260px;
+      }
+    }
+  }
+</style>

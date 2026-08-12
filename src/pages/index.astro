@@ -1,6 +1,7 @@
 ---
 import { Image } from 'astro:assets';
 import Base from '../layouts/Base.astro';
+import Profile from '../components/profile/Profile.astro';
 import WindowGrid from '../components/facade/WindowGrid.astro';
 import heroImage from '../assets/hero.png';
 ---
@@ -45,6 +46,7 @@ import heroImage from '../assets/hero.png';
       <span class="font-mono hero__scroll-label">SCROLL</span>
     </a>
   </section>
+  <Profile />
   <WindowGrid />
 </Base>
 
