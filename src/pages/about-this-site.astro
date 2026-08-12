@@ -42,6 +42,114 @@ const vitals = [
   },
 ];
 
+/*
+  技術スタック。採用理由まで書く。
+  「何を使ったか」だけならpackage.jsonを見れば分かるので、
+  このページの価値は「なぜそれを選んだか」にある。
+*/
+const stack = [
+  {
+    category: 'フレームワーク',
+    items: [
+      {
+        name: 'Astro',
+        note: '明示的に指示しない限りJSを出力しない。演出過多なサイトほど、土台の出力JSは軽くあるべきだと考えた。',
+      },
+      {
+        name: 'TypeScript (strict)',
+        note: 'アイランドの中身も含めて型を通す。フレームワークのランタイムは載せない。',
+      },
+    ],
+  },
+  {
+    category: '見た目',
+    items: [
+      {
+        name: '素のCSS + カスケードレイヤー',
+        note: 'Tailwind は使わない。デザイントークンを一次情報として持ちたかったのと、ユーティリティクラスの羅列ではこのページで説明しづらいため。',
+      },
+      {
+        name: 'Archivo / Zen Kaku Gothic New / IBM Plex Mono',
+        note: '全てセルフホスト。Google Fonts への実行時接続はしない（third-party接続はLCPを悪化させる）。',
+      },
+    ],
+  },
+  {
+    category: '演出',
+    items: [
+      {
+        name: 'GSAP + ScrollTrigger',
+        note: 'スクロール連動の点灯シーケンスと縦看板のパララックス。全て遅延ロードで、初期JSには含めない。',
+      },
+      {
+        name: 'OGL',
+        note: 'Three.js（約150KB）に対し約10KB。背景シェーダー1枚にしか使わないので軽さを優先した。',
+      },
+    ],
+  },
+  {
+    category: '配信',
+    items: [
+      {
+        name: 'Cloudflare Workers (Static Assets)',
+        note: 'Worker スクリプトを持たないアセットのみの構成。Pages でも動くが、後から動的処理が必要になったときの移行コストをゼロにするため。',
+      },
+      {
+        name: 'GitHub Actions + Lighthouse CI',
+        note: 'PRごとに計測し、予算を割ったらビルドを落とす。このページの数値もCIが自動で更新する。',
+      },
+    ],
+  },
+];
+
+/*
+  こだわり・工夫。
+  実装中に実際に踏んだ問題と、その対処を書く。
+  一般論ではなく、このサイトで測って決めたことだけを載せる。
+*/
+const craft = [
+  {
+    title: '和文フォントを出力HTMLから逆算して切る',
+    body: 'サブセット対象の文字を、ソースコードではなくビルド後のHTMLから集めている。ソースを走査すると日本語のコード内コメントまで拾ってしまい、描画されない文字のために和文フォントが15KB太った。さらに Bold は見出しにしか使わないので、本文の文字を含めず見出しだけから抽出している（93KB→22.5KB）。',
+  },
+  {
+    title: '和文をトップ用と残りに分割する',
+    body: 'サイト全体の和文を1ファイルにすると、トップページが「このサイトについて」の長文で使う文字まで読み込むことになる。unicode-range で core / ext に分け、トップは core だけで完結させた。分割の境界は実測で決めていて、広げるとトップのLCPが悪化する。',
+  },
+  {
+    title: '欧文は1ウェイトに固定する',
+    body: '可変フォントは便利だが、LCP要素の書体では話が別だった。wght 400-700 の可変で20.1KB、ウェイト別2ファイルではリクエストが1本増える。どちらもLCPを1.86s→2.10sまで悪化させたので、wdth 80 / wght 700 の単一インスタンス（9.3KB）に固定した。',
+  },
+  {
+    title: 'preload は1つだけに絞る',
+    body: 'ファーストビューの書体を全部 preload すると帯域を奪い合って逆効果になる。IBM Plex Mono を足したら最悪値が 1980ms → 2054ms に悪化した。LCP要素に使う Archivo だけを先読みしている。',
+  },
+  {
+    title: 'アイランドの起動スクリプトを1本にまとめる',
+    body: 'コンポーネントごとに script を置くと、数百バイトのチャンクが別々のリクエストになる。初期ロードでフォントと帯域を奪い合い、LCPが約40ms悪化した。窓グリッド周りの3つのアイランドは1本のエントリから起動している（リクエスト4本→2本）。',
+  },
+  {
+    title: 'GPUが無い環境では背景シェーダーを動かさない',
+    body: 'GPUを持たない環境ではWebGLがソフトウェア描画になり、全画面のfBmシェーダーを毎フレームCPUで解くことになる。実際CIで Performance 0.71 / TBT 2180ms まで落ちた。内訳を見るとスクリプト実行は290msで、残りはラスタライズだった。描画元を検出して初期化を諦め、CSSのグラデーションに任せている。',
+  },
+  {
+    title: '計測は本番と同じ圧縮条件で行う',
+    body: 'astro preview は無圧縮で配信するため、そのまま測ると本番より悪い数値が出る。Cloudflare は必ず圧縮するので、計測用に gzip 配信する静的サーバーを別に用意した。公開する数値は本番と同条件で測ったものにしている。',
+  },
+  {
+    title: '消灯している窓の配置を固定する',
+    body: '窓グリッドの65〜75%は作品ではない装飾セルだが、配置はシード固定の疑似乱数で決めている。実行時にランダムだと、リロードのたびに別のサイトに見えてしまうため。',
+  },
+  {
+    title: 'ネオンの芯は白に寄せる',
+    body: '実物のネオン管は中心が白飛びしていて、色は周囲に出る。中心まで管の色のままだと「文字に影を付けただけ」に見える。芯・内側グロー・外側グロー・壁への漏れ光の4層で組んでいる。',
+  },
+  {
+    title: '光の上でもコントラストを実測する',
+    body: 'グローは背景を明るくするので、文字色との比が下がる。写真背景を入れたとき、ヘッダーのナビが青いネオンの上に来て 3.30:1 まで落ちていた（基準は4.5:1）。文字を消した状態でスクリーンショットを撮り、文字が乗る領域の最も明るい画素と比較して確認している。',
+  },
+];
+
 const measuredAt = new Date(metrics.measuredAt).toLocaleString('ja-JP', {
   timeZone: 'Asia/Tokyo',
   dateStyle: 'medium',
@@ -52,11 +160,21 @@ const measuredAt = new Date(metrics.measuredAt).toLocaleString('ja-JP', {
 <Base
   title="About This Site"
   description="このサイトの実測値と、採用しなかった選択肢を含む意思決定の記録。"
+  preloadFonts={[
+    /*
+      このページのLCP要素は導入文（和文）。トップとは違い、ここでは Archivo ではなく
+      和文が待ち時間を作っている（実測 FCP 1.5s → LCP 2.3s）。
+      導入文は data-font-core で core 側に寄せてあるので、core だけを先読みする。
+      ext まで足すと帯域を奪い合うだけで効かなかった（実測で変化なし）。
+    */
+    '/fonts/ZenKakuGothicNew-Regular.woff2',
+  ]}
 >
   <article class="about">
     <header class="about__header">
       <h1 class="about__title font-display">ABOUT THIS SITE</h1>
-      <p class="about__lead">
+      {/* ファーストビューの和文。ext の到着を待たせないため core に含める（scripts/subset-fonts.mjs）*/}
+      <p class="about__lead" data-font-core>
         派手な演出を持ちながら速度を落とさないこと自体が、このサイトの主張です。
         主張である以上、数値と判断の根拠を公開します。
       </p>
@@ -111,7 +229,68 @@ const measuredAt = new Date(metrics.measuredAt).toLocaleString('ja-JP', {
         これらの数値は手打ちではありません。ビルド時に Lighthouse を実行して
         <code class="font-mono">src/data/metrics.json</code>
         に書き出し、このページはそれを読んでいます。手で書くと必ず陳腐化するためです。
+        上の数値はトップページの実測値です。
       </p>
+
+      {/*
+        自分の例外を隠して数値だけ出すのは、このページの趣旨に反する。
+        守れていない箇所は理由と一緒に書く。
+      */}
+      <p class="about__note">
+        <strong>このページだけ LCP の目標を 2.4s に緩めています。</strong>
+        和文の分量が多く、LCP要素である冒頭の一文がフォントの到着を待つためです。
+        preload、サブセットの切り分け、LCP要素の差し替えを試しましたが、
+        いずれも 2.25s 前後から動きませんでした。
+        内容を削れば通りますが、それはこのページの存在価値を削ることになるので、
+        <strong>数値のほうを譲りました</strong>。
+        CI ではこのページだけ 2.4s、他のページは 2.0s のまま判定しています。
+      </p>
+    </section>
+
+    <section class="about__section" aria-labelledby="stack-heading">
+      <h2 id="stack-heading" class="about__heading">技術スタック</h2>
+      <p class="about__body">
+        何を使ったかは <code class="font-mono">package.json</code> を見れば分かります。
+        ここに書くのは、なぜそれを選んだかです。
+      </p>
+
+      {
+        stack.map((group) => (
+          <div class="stack">
+            <h3 class="stack__category font-mono">{group.category}</h3>
+            <dl class="stack__list">
+              {group.items.map((item) => (
+                <div class="stack__item">
+                  <dt class="stack__name font-mono">{item.name}</dt>
+                  <dd class="stack__note">{item.note}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        ))
+      }
+    </section>
+
+    <section class="about__section" aria-labelledby="craft-heading">
+      <h2 id="craft-heading" class="about__heading">こだわりと工夫</h2>
+      <p class="about__body">
+        実装中に実際に踏んだ問題と、その対処です。一般論ではなく、
+        <strong>このサイトで測って決めたこと</strong>だけを載せています。
+      </p>
+
+      <ol class="craft">
+        {
+          craft.map((c, i) => (
+            <li class="craft__item">
+              <p class="craft__index font-mono">{String(i + 1).padStart(2, '0')}</p>
+              <div>
+                <h3 class="craft__title">{c.title}</h3>
+                <p class="craft__body">{c.body}</p>
+              </div>
+            </li>
+          ))
+        }
+      </ol>
     </section>
 
     <section class="about__section" aria-labelledby="demo-heading">
@@ -234,6 +413,108 @@ const measuredAt = new Date(metrics.measuredAt).toLocaleString('ja-JP', {
     code {
       color: var(--c-fluorescent);
       font-size: 0.9em;
+    }
+
+    /* --- 技術スタック --- */
+    .stack {
+      margin-top: var(--space-4);
+    }
+
+    .stack__category {
+      color: var(--c-dust);
+      font-size: var(--fs-caption);
+      letter-spacing: 0.16em;
+      font-weight: 400;
+      padding-bottom: var(--space-1);
+      border-bottom: 1px solid var(--c-facade);
+    }
+
+    .stack__list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+      margin-top: var(--space-3);
+    }
+
+    .stack__name {
+      color: var(--c-fluorescent);
+      font-size: var(--fs-small);
+      display: flex;
+      align-items: center;
+      gap: 0.6em;
+    }
+
+    /* 項目の頭に灯を1つ。窓明かりの見立てを小さく反復させる */
+    .stack__name::before {
+      content: '';
+      width: 5px;
+      height: 7px;
+      flex: none;
+      border-radius: 1px;
+      background: var(--c-facade-lit);
+      box-shadow: 0 0 8px -2px var(--c-signal);
+    }
+
+    .stack__note {
+      margin: var(--space-1) 0 0 calc(5px + 0.6em);
+      color: var(--c-dust);
+      font-size: var(--fs-small);
+      line-height: 1.85;
+    }
+
+    /* --- こだわりと工夫 --- */
+    .craft {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-4);
+      margin-top: var(--space-4);
+      counter-reset: craft;
+    }
+
+    .craft__item {
+      display: grid;
+      grid-template-columns: 2.5rem 1fr;
+      gap: var(--space-2);
+      align-items: start;
+    }
+
+    /*
+      連番。窓の並びに見えるよう光らせるが、芯は白に寄せる（§6.4）。
+      --c-signal をそのまま文字色にすると黒地で 2.57:1 しか出ず、
+      §1.3 の 4.5:1 を割る（実測）。色は glow 側に持たせる。
+    */
+    .craft__index {
+      color: var(--neon-violet-core);
+      font-size: var(--fs-small);
+      text-shadow:
+        0 0 6px var(--c-signal),
+        0 0 16px color-mix(in srgb, var(--c-signal) 60%, transparent);
+      padding-top: 0.15em;
+    }
+
+    .craft__title {
+      font-size: var(--fs-body);
+      color: var(--c-fluorescent);
+      line-height: 1.6;
+    }
+
+    .craft__body {
+      margin-top: var(--space-1);
+      color: var(--c-dust);
+      font-size: var(--fs-small);
+      line-height: 1.9;
+    }
+
+    strong {
+      color: var(--c-fluorescent);
+      font-weight: 700;
+    }
+
+    @media (max-width: 640px) {
+      .craft__item {
+        grid-template-columns: 1.75rem 1fr;
+        gap: var(--space-1);
+      }
     }
 
     /* --- スコア --- */

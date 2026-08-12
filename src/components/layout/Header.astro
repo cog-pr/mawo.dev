@@ -1,16 +1,67 @@
 ---
-const nav = [{ href: '/about-this-site', label: 'ABOUT THIS SITE' }];
+/*
+  ヘッダーとハンバーガーメニュー。
+
+  開閉は <details>/<summary> で作っている。JSなしでも開閉が成立し、
+  キーボード操作と aria-expanded の面倒をブラウザが見てくれるため
+  （§1.3「JSが実行されなくても壊れない」を満たす一番素直な方法）。
+
+  Esc で閉じる・背景のスクロールを止める・閉じたときにボタンへ
+  フォーカスを戻す、といった快適さの部分だけをJSで上乗せする。
+*/
+const links = [
+  { href: '/#works', label: 'WORKS', jp: '作品' },
+  { href: '/about-this-site', label: 'ABOUT THIS SITE', jp: 'このサイトについて' },
+];
+
+const socials = [
+  { href: 'https://github.com/cog-pr', label: 'GitHub' },
+  { href: 'https://x.com/cog__pr', label: 'X' },
+  { href: 'mailto:contact@mawo.dev', label: 'CONTACT' },
+];
 ---
 
 <header class="site-header">
   <a href="/" class="site-header__mark font-mono">WINDOWS AT NIGHT</a>
-  <nav class="site-header__nav font-mono" aria-label="サイトナビゲーション">
-    {
-      nav.map((item) => (
-        <a href={item.href}>{item.label}</a>
-      ))
-    }
-  </nav>
+
+  <details class="menu" data-menu>
+    <summary class="menu__button" aria-label="メニューを開く">
+      <span class="menu__bars" aria-hidden="true">
+        <span></span>
+        <span></span>
+        <span></span>
+      </span>
+    </summary>
+
+    <div class="menu__panel">
+      <nav class="menu__nav" aria-label="サイトナビゲーション">
+        <ul class="menu__list">
+          {
+            links.map((item) => (
+              <li>
+                <a href={item.href} class="menu__link">
+                  <span class="menu__link-en font-display">{item.label}</span>
+                  <span class="menu__link-jp">{item.jp}</span>
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+
+        <ul class="menu__socials font-mono">
+          {
+            socials.map((s) => (
+              <li>
+                <a href={s.href} rel="me noopener noreferrer">
+                  {s.label}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
+    </div>
+  </details>
 </header>
 
 <style is:global>
@@ -20,7 +71,7 @@ const nav = [{ href: '/about-this-site', label: 'ABOUT THIS SITE' }];
       top: 0;
       left: 0;
       right: 0;
-      z-index: 10;
+      z-index: 20;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -32,7 +83,6 @@ const nav = [{ href: '/about-this-site', label: 'ABOUT THIS SITE' }];
     /*
       ヘッダーは背景の上に重なるため、下に何が来ても本文コントラスト 4.5:1（§1.3）
       を割らないよう、自前で薄い暗幕を持つ。
-      トップの写真背景ではネオンの上にナビが乗って 3.3:1 まで落ちていた。
       背景が --c-void のページでは黒→透明なので見た目に影響しない。
     */
     .site-header::before {
@@ -51,15 +101,197 @@ const nav = [{ href: '/about-this-site', label: 'ABOUT THIS SITE' }];
 
     .site-header__mark {
       color: var(--c-fluorescent);
+      position: relative;
+      z-index: 1;
     }
 
-    .site-header__nav a {
+    /* --- ハンバーガー --- */
+    .menu {
+      position: relative;
+      z-index: 1;
+    }
+
+    .menu__button {
+      display: grid;
+      place-items: center;
+      width: 2.5rem;
+      height: 2.5rem;
+      margin-right: -0.5rem;
+      cursor: pointer;
+      /* 既定の三角マーカーを消す */
+      list-style: none;
+    }
+
+    .menu__button::-webkit-details-marker {
+      display: none;
+    }
+
+    .menu__bars {
+      display: grid;
+      gap: 5px;
+      width: 22px;
+    }
+
+    .menu__bars span {
+      display: block;
+      height: 1px;
+      background: var(--c-fluorescent);
+      transition:
+        transform var(--dur-fast) var(--ease-out),
+        opacity var(--dur-fast) var(--ease-out);
+    }
+
+    /* 開いたら X に組み替える */
+    .menu[open] .menu__bars span:nth-child(1) {
+      transform: translateY(6px) rotate(45deg);
+    }
+    .menu[open] .menu__bars span:nth-child(2) {
+      opacity: 0;
+    }
+    .menu[open] .menu__bars span:nth-child(3) {
+      transform: translateY(-6px) rotate(-45deg);
+    }
+
+    /* --- パネル --- */
+    .menu__panel {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      display: grid;
+      place-items: center;
+      background: color-mix(in srgb, var(--c-void) 96%, transparent);
+      animation: menu-in var(--dur-base) var(--ease-out) both;
+    }
+
+    @keyframes menu-in {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    .menu__nav {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-5);
+      text-align: center;
+    }
+
+    .menu__list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+    }
+
+    .menu__link {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      padding: var(--space-1) var(--space-2);
+    }
+
+    .menu__link-en {
+      font-size: var(--fs-h1);
+      color: var(--c-fluorescent);
+      letter-spacing: 0.02em;
+      line-height: 1.1;
+      transition: text-shadow var(--dur-base) var(--ease-inout);
+    }
+
+    .menu__link-jp {
+      font-size: var(--fs-caption);
+      color: var(--c-dust);
+      letter-spacing: 0.12em;
+    }
+
+    /*
+      ホバー/フォーカスで管が灯る（§6.4）。
+      点灯は速く、消灯は遅く（§3.3）。
+    */
+    .menu__link:hover .menu__link-en,
+    .menu__link:focus-visible .menu__link-en {
+      text-shadow:
+        0 0 6px var(--neon-cyan),
+        0 0 18px color-mix(in srgb, var(--neon-cyan) 70%, transparent),
+        0 0 42px color-mix(in srgb, var(--neon-cyan) 40%, transparent);
+      transition: text-shadow var(--dur-fast) var(--ease-out);
+    }
+
+    .menu__socials {
+      display: flex;
+      gap: var(--space-3);
+      font-size: var(--fs-small);
+    }
+
+    .menu__socials a {
       color: var(--c-dust);
     }
 
-    .site-header__nav a:hover,
-    .site-header__nav a:focus-visible {
+    .menu__socials a:hover,
+    .menu__socials a:focus-visible {
       color: var(--c-fluorescent);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .menu__bars span,
+      .menu__link-en {
+        transition: none;
+      }
+      .menu__panel {
+        animation: none;
+      }
     }
   }
 </style>
+
+<script>
+  /*
+    <details> だけでも開閉は成立する。ここで足すのは快適さの部分だけ。
+      - Esc で閉じる
+      - 開いている間は背景をスクロールさせない
+      - 閉じたときにハンバーガーへフォーカスを戻す
+      - リンクを踏んだら閉じる（同一ページ内アンカーでも閉じるように）
+    どれも失敗してもメニュー自体は使えるので、失敗時の分岐は持たない。
+  */
+  const menu = document.querySelector<HTMLDetailsElement>('[data-menu]');
+
+  if (menu) {
+    const button = menu.querySelector('summary');
+
+    const lockScroll = (locked: boolean) => {
+      document.documentElement.style.overflow = locked ? 'hidden' : '';
+    };
+
+    menu.addEventListener('toggle', () => {
+      lockScroll(menu.open);
+      if (button) {
+        button.setAttribute('aria-label', menu.open ? 'メニューを閉じる' : 'メニューを開く');
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && menu.open) {
+        menu.open = false;
+        button?.focus();
+      }
+    });
+
+    menu.querySelectorAll('a').forEach((a) => {
+      a.addEventListener('click', () => {
+        menu.open = false;
+      });
+    });
+
+    /*
+      View Transitions で別ページへ移ると、スクロールロックが
+      解除されないまま残ることがあるので明示的に戻す。
+    */
+    document.addEventListener('astro:before-swap', () => {
+      menu.open = false;
+      lockScroll(false);
+    });
+  }
+</script>

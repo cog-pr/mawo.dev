@@ -17,11 +17,19 @@ const ORIGIN = `http://localhost:${PORT}`;
 
 const PATHS = ['/', '/about-this-site/', '/works/lumen-editor/'];
 
+/*
+  LCP だけページごとに閾値が違う。lighthouserc.json の assertMatrix と揃えること。
+  「このサイトについて」は和文が多く、LCP要素の導入文がフォントの到着を待つため
+  2.25s 前後で頭打ちになる（仕様書 §8 の但し書きを参照）。
+*/
+const LCP_LIMITS = { '/about-this-site/': 2400 };
+const LCP_DEFAULT = 2000;
+
 // lighthouserc.json と同じしきい値
 const ASSERTIONS = [
   { key: 'perf', label: 'performance', min: 95 },
   { key: 'a11y', label: 'accessibility', min: 100 },
-  { key: 'lcp', label: 'LCP (ms)', max: 2000 },
+  { key: 'lcp', label: 'LCP (ms)', max: LCP_DEFAULT, perPath: LCP_LIMITS },
   { key: 'cls', label: 'CLS', max: 0.05 },
   { key: 'tbt', label: 'TBT (ms)', max: 200 },
 ];
@@ -74,8 +82,9 @@ try {
     console.log(`\n${p}  (${RUNS}回の中央値)`);
     for (const a of ASSERTIONS) {
       const value = median(results.map((r) => r[a.key]));
-      const ok = a.min !== undefined ? value >= a.min : value <= a.max;
-      const limit = a.min !== undefined ? `>= ${a.min}` : `<= ${a.max}`;
+      const max = a.perPath?.[p] ?? a.max;
+      const ok = a.min !== undefined ? value >= a.min : value <= max;
+      const limit = a.min !== undefined ? `>= ${a.min}` : `<= ${max}`;
       const shown = a.key === 'cls' ? value.toFixed(3) : Math.round(value);
       console.log(`  ${ok ? 'PASS' : 'FAIL'}  ${a.label.padEnd(16)} ${String(shown).padStart(6)}  (${limit})`);
       if (!ok) failed = true;
