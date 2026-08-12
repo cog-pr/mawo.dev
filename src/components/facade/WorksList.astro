@@ -1,0 +1,136 @@
+---
+import { getCollection } from 'astro:content';
+import WorkSign from './WorkSign.astro';
+import LightPollution from '../sky/LightPollution.astro';
+import VerticalRail from '../rail/VerticalRail.astro';
+
+/*
+  作品一覧。
+
+  以前は 3:4 の窓を敷き詰めたグリッドで、うち67%は装飾（暗いだけのセル）だった。
+  ただ実際には装飾として機能しておらず、「作品が入っていない枠」に見えていた。
+  さらに作品名とサムネイルがホバー時しか出ないため、タッチ端末では
+  タップするまで何も分からない状態だった。よって装飾セルは全廃し、
+  作品だけを看板として並べる形に変えた（仕様書 §6.1 改訂）。
+*/
+const works = await getCollection('works', ({ data }) => !data.draft);
+const sorted = [...works].sort((a, b) => a.data.order - b.data.order);
+
+/*
+  管の色。作品ごとに割り当てて多色の街にする（§1.2 改訂で紫縛りは撤回）。
+  順番に回すので、リロードしても同じ作品は同じ色になる。
+*/
+const TUBES = [
+  { hue: 'var(--neon-cyan)', core: 'var(--neon-cyan-core)' },
+  { hue: 'var(--neon-pink)', core: 'var(--neon-pink-core)' },
+  { hue: 'var(--neon-amber)', core: 'var(--neon-amber-core)' },
+  { hue: 'var(--neon-violet)', core: 'var(--neon-violet-core)' },
+  { hue: 'var(--neon-lime)', core: 'var(--neon-lime-core)' },
+];
+---
+
+<section id="works" class="works-section">
+  <LightPollution />
+  <VerticalRail />
+
+  <div class="works-section__inner">
+    <h2 class="works-section__heading font-mono">
+      SELECTED WORKS
+      <span class="works-section__count">{sorted.length}</span>
+    </h2>
+
+    <nav aria-label="作品一覧">
+      <ol class="works">
+        {
+          sorted.map((work, i) => (
+            <WorkSign
+              work={work}
+              index={i}
+              hue={TUBES[i % TUBES.length].hue}
+              core={TUBES[i % TUBES.length].core}
+            />
+          ))
+        }
+      </ol>
+    </nav>
+  </div>
+</section>
+
+<style>
+  @layer components {
+    .works-section {
+      position: relative;
+      padding: var(--space-6) var(--space-3);
+      background: var(--c-void);
+      /* WebGL初期化までの、あるいは条件を満たさない場合の代替。淡い滲みだけを残す。 */
+      background-image: linear-gradient(
+        to top,
+        color-mix(in srgb, var(--c-signal) 18%, var(--c-void)) 0%,
+        var(--c-void) 45%
+      );
+    }
+
+    /*
+      トップページでは固定背景の夜景をこのセクションが覆い隠す。
+      境目が直線で切れると切り抜きミスに見えるため、少し上に暗転の帯を出す。
+    */
+    .works-section::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 100%;
+      height: var(--space-6);
+      pointer-events: none;
+      background: linear-gradient(to bottom, transparent, var(--c-void));
+    }
+
+    /* 光害の空は下端が最も明るいので、セクションの終わりで闇に還す */
+    .works-section::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: var(--space-6);
+      z-index: 0;
+      pointer-events: none;
+      background: linear-gradient(to bottom, transparent, var(--c-void));
+    }
+
+    .works-section__inner {
+      position: relative;
+      z-index: 1;
+      max-width: 64rem;
+      margin-inline: auto;
+    }
+
+    .works-section__heading {
+      display: flex;
+      align-items: baseline;
+      gap: 0.6em;
+      color: var(--c-dust);
+      font-size: var(--fs-caption);
+      font-weight: 400;
+      letter-spacing: 0.16em;
+      margin-bottom: var(--space-3);
+    }
+
+    .works-section__count {
+      color: var(--c-fluorescent);
+    }
+
+    .works {
+      display: flex;
+      flex-direction: column;
+    }
+  }
+</style>
+
+<script>
+  // このセクション内のアイランド（看板の点灯 / 光害の空 / 縦組みレール）は
+  // まとめて1本のエントリから起動する。コンポーネントごとに <script> を置くと
+  // 小さなチャンクが別々のリクエストになり、初期ロードでフォントと帯域を奪い合う。
+  import { initIslands } from '../motion/islands';
+  initIslands();
+</script>

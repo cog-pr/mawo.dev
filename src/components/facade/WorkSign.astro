@@ -1,0 +1,231 @@
+---
+import { Image } from 'astro:assets';
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  work: CollectionEntry<'works'>;
+  index: number;
+  /* 管の色。作品ごとに変えて多色の街にする（仕様書 §1.2 改訂） */
+  hue: string;
+  core: string;
+}
+
+const { work, index, hue, core } = Astro.props;
+const { title, titleEn, year, roles, stack, summary, thumbnail } = work.data;
+const num = String(index + 1).padStart(2, '0');
+---
+
+{/*
+  作品1件 = 看板1枚。
+
+  夜のネオン街で実際に目に入るのは窓ではなく看板なので、
+  作品はサムネイルと名前を常時見せる看板として置く（仕様書 §6.1 改訂）。
+  以前は 3:4 の窓セルで、ホバーするまで何も見えなかった。
+  タッチ端末には hover が無いため、タップするまで内容が分からない状態だった。
+
+  リンクは <a> ひとつで囲む。JSなしでもキーボードでも同じ挙動になる。
+*/}
+<li class="sign" style={`--neon-hue: ${hue}; --neon-core: ${core};`}>
+  <a href={`/works/${work.id}/`} class="sign__link">
+    <span class="sign__num font-mono">{num}</span>
+
+    <span class="sign__media">
+      {/*
+        形式は指定しない。現在のサムネイルは仮素材のSVGで、
+        format を指定するとラスタライズが必要になりビルドが落ちる。
+        指定しなければ SVG はそのまま通り、ラスタ画像に差し替えたときは
+        Astro 側で最適化される。
+      */}
+      <Image
+        src={thumbnail}
+        alt=""
+        width={480}
+        height={320}
+        loading="lazy"
+        class="sign__thumb"
+        transition:name={`work-${work.id}`}
+      />
+    </span>
+
+    <span class="sign__body">
+      {/* 看板の文字。ここだけネオン管にする */}
+      <span class="sign__title font-display neon">{titleEn ?? title}</span>
+      {titleEn && <span class="sign__title-jp">{title}</span>}
+
+      <span class="sign__meta font-mono">
+        <span>{year}</span>
+        <span aria-hidden="true">/</span>
+        <span>{roles.join('・')}</span>
+      </span>
+
+      <span class="sign__summary">{summary}</span>
+
+      <span class="sign__stack font-mono">
+        {stack.map((s) => <span class="sign__tag">{s}</span>)}
+      </span>
+    </span>
+  </a>
+</li>
+
+<style is:global>
+  @layer components {
+    .sign {
+      /* 点灯シーケンス（ignite）がここを触る。静止状態でも読める値を初期値にする */
+      --sign-lit: 1;
+    }
+
+    .sign__link {
+      display: grid;
+      grid-template-columns: 2.5rem 240px 1fr;
+      gap: var(--space-3);
+      align-items: start;
+      padding: var(--space-3) var(--space-2);
+      border-top: 1px solid var(--c-facade);
+      transition: background var(--dur-base) var(--ease-inout);
+    }
+
+    .sign:last-child .sign__link {
+      border-bottom: 1px solid var(--c-facade);
+    }
+
+    .sign__link:hover,
+    .sign__link:focus-visible {
+      background: var(--c-facade);
+      transition: background var(--dur-fast) var(--ease-out);
+    }
+
+    .sign__num {
+      color: var(--c-dust);
+      font-size: var(--fs-small);
+      padding-top: 0.35em;
+    }
+
+    /* --- サムネイル --- */
+    .sign__media {
+      display: block;
+      aspect-ratio: 3 / 2;
+      border-radius: var(--radius-panel);
+      overflow: hidden;
+      background: var(--c-facade);
+      /* 管の色がうっすら回り込む。看板が街灯に照らされている感じ */
+      box-shadow: 0 0 24px -14px var(--neon-hue);
+    }
+
+    .sign__thumb {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      /* 静止時は少し沈め、ホバーで起こす */
+      opacity: 0.72;
+      transition: opacity var(--dur-base) var(--ease-inout);
+    }
+
+    .sign__link:hover .sign__thumb,
+    .sign__link:focus-visible .sign__thumb {
+      opacity: 1;
+      transition: opacity var(--dur-fast) var(--ease-out);
+    }
+
+    /* --- 本文 --- */
+    .sign__body {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      min-width: 0;
+    }
+
+    /*
+      看板の文字。neon クラスの発光を、静止時は弱く・ホバーで強くする。
+      --neon-strength は @property 登録済みなので補間される（neon.css）。
+    */
+    .sign__title {
+      --neon-strength: 0.5;
+      font-size: var(--fs-h2);
+      line-height: 1.15;
+      transition: --neon-strength var(--dur-base) var(--ease-inout);
+    }
+
+    .sign__link:hover .sign__title,
+    .sign__link:focus-visible .sign__title {
+      --neon-strength: 1.15;
+      transition: --neon-strength var(--dur-fast) var(--ease-out);
+    }
+
+    .sign__title-jp {
+      color: var(--c-fluorescent);
+      font-size: var(--fs-small);
+    }
+
+    .sign__meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5em;
+      color: var(--c-dust);
+      font-size: var(--fs-caption);
+      letter-spacing: 0.06em;
+    }
+
+    .sign__summary {
+      margin-top: 0.2rem;
+      color: var(--c-dust);
+      font-size: var(--fs-small);
+      line-height: 1.85;
+      max-width: 52ch;
+    }
+
+    .sign__stack {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem 0.5rem;
+      margin-top: 0.3rem;
+      font-size: var(--fs-caption);
+    }
+
+    .sign__tag {
+      padding: 0.15em 0.5em;
+      color: var(--c-dust);
+      border: 1px solid var(--c-facade-lit);
+      border-radius: var(--radius-button);
+    }
+
+    @media (max-width: 767px) {
+      .sign__link {
+        /* 番号を畳んで、画像と本文の2列にする */
+        grid-template-columns: 38vw 1fr;
+        gap: var(--space-2);
+        padding: var(--space-3) 0;
+      }
+
+      .sign__num {
+        display: none;
+      }
+
+      /* 幅が足りず改行が汚くなるので、要約は畳む（詳細ページで読める） */
+      .sign__summary {
+        display: none;
+      }
+
+      /*
+        年と役割を縦積みにする。横に並べると役割が折り返して
+        区切りの「/」だけが行末に取り残される。
+      */
+      .sign__meta {
+        flex-direction: column;
+        gap: 0.15em;
+      }
+
+      .sign__meta [aria-hidden] {
+        display: none;
+      }
+
+      /* タグが縦に伸びすぎるので詰める */
+      .sign__stack {
+        gap: 0.3rem 0.35rem;
+      }
+
+      .sign__tag {
+        padding: 0.1em 0.4em;
+      }
+    }
+  }
+</style>
