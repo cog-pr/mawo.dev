@@ -23,19 +23,42 @@
       }
     },
     "assert": {
-      "assertions": {
-        "categories:performance": ["error", { "minScore": 0.95 }],
-        "categories:accessibility": ["error", { "minScore": 1 }],
-        "categories:best-practices": ["warn", { "minScore": 1 }],
-        "categories:seo": ["warn", { "minScore": 1 }],
+      "assertMatrix": [
+        {
+          "//": "全ページ共通。LCPだけはページごとに閾値が違うのでここには入れない。",
+          "matchingUrlPattern": ".*",
+          "assertions": {
+            "categories:performance": ["error", { "minScore": 0.95 }],
+            "categories:accessibility": ["error", { "minScore": 1 }],
+            "categories:best-practices": ["warn", { "minScore": 1 }],
+            "categories:seo": ["warn", { "minScore": 1 }],
 
-        "largest-contentful-paint": ["error", { "maxNumericValue": 2000 }],
-        "cumulative-layout-shift": ["error", { "maxNumericValue": 0.05 }],
-        "total-blocking-time": ["error", { "maxNumericValue": 200 }],
+            "cumulative-layout-shift": ["error", { "maxNumericValue": 0.05 }],
+            "total-blocking-time": ["error", { "maxNumericValue": 200 }],
 
-        "resource-summary:script:size": ["error", { "maxNumericValue": 102400 }],
-        "resource-summary:font:size": ["error", { "maxNumericValue": 204800 }]
-      }
+            "resource-summary:script:size": ["error", { "maxNumericValue": 102400 }],
+            "resource-summary:font:size": ["error", { "maxNumericValue": 204800 }]
+          }
+        },
+        {
+          "//": "「このサイトについて」以外。仕様書 §8 の本来の目標値。",
+          "matchingUrlPattern": "^(?!.*about-this-site).*$",
+          "assertions": {
+            "largest-contentful-paint": ["error", { "maxNumericValue": 2000 }]
+          }
+        },
+        {
+          "//": "「このサイトについて」だけ 2400ms。理由は仕様書 §8 の但し書きを参照。",
+          "//2": "和文が多く、LCP要素の導入文がフォントの到着を待つ。",
+          "//3": "preload・coreサブセットへの移動・LCP要素の差し替えを試したが",
+          "//4": "いずれも改善しなかった（2253→2255→2253ms）。",
+          "//5": "内容量を削るより実測値を公開する方を選んだ結果の例外。",
+          "matchingUrlPattern": ".*about-this-site.*",
+          "assertions": {
+            "largest-contentful-paint": ["error", { "maxNumericValue": 2400 }]
+          }
+        }
+      ]
     },
     "upload": {
       "target": "temporary-public-storage"

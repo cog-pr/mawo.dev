@@ -18,9 +18,16 @@ import Footer from '../components/layout/Footer.astro';
 interface Props {
   title: string;
   description: string;
+  /*
+    このページのLCP要素が必要とする追加フォント。
+    ページによってLCP要素の書体が違うため（トップは欧文の大見出し、
+    「このサイトについて」は和文の導入文）、共通で全部 preload はしない。
+    無関係な書体を足すと帯域を奪い合ってかえって遅くなる（実測済み）。
+  */
+  preloadFonts?: string[];
 }
 
-const { title, description } = Astro.props;
+const { title, description, preloadFonts = [] } = Astro.props;
 const siteName = '夜のビルの窓';
 const pageTitle = `${title} | ${siteName}`;
 
@@ -80,6 +87,11 @@ const ogImage = new URL('/og.jpg', Astro.site);
       type="font/woff2"
       crossorigin
     />
+    {
+      preloadFonts.map((href) => (
+        <link rel="preload" href={href} as="font" type="font/woff2" crossorigin />
+      ))
+    }
     <ClientRouter />
   </head>
   <body>

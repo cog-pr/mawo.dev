@@ -67,11 +67,20 @@ if (htmlFiles.length === 0) {
 
 let renderedText = '';
 let boldText = '';
-// core = トップページで必要な文字 / ext = それ以外のページにしか出ない文字。
-//
-// 分割の境界は実測で決めた。core を広げて「全ページの見出し＋導入段落」まで
-// 入れると core が 34.7→54.4KB に膨らみ、トップの LCP が 1894→2179ms と悪化した。
-// トップは core だけで完結させるのが最も速い。
+/*
+  core = トップページで必要な文字 + 各ページが明示的に指定した文字
+  ext  = それ以外のページにしか出ない文字
+
+  分割の境界は実測で決めた。core を広げて「全ページの見出し＋導入段落」まで
+  自動で入れると core が 34.7→54.4KB に膨らみ、トップの LCP が 1894→2179ms と
+  悪化した。よって自動では広げず、必要なページが自分で申告する方式にしている。
+
+  申告の仕方: その要素に data-font-core を付ける。
+  ファーストビューに出る和文で、ext の到着を待たせたくないものに使う。
+  （例: 「このサイトについて」の導入文。core/ext にまたがっていたため
+   LCP が 2.25s まで落ちていた）
+  付けすぎると core が太ってトップが遅くなるので、本当に最初に見える分だけ。
+*/
 let coreText = '';
 
 const isHome = (file) => /[/\\]dist[/\\]index\.html$/.test(file);
@@ -83,6 +92,11 @@ for (const file of htmlFiles) {
   const pageText = stripTags(cleaned) + ' ' + renderedAttributeText(cleaned);
   renderedText += pageText;
   if (isHome(file)) coreText += pageText;
+
+  // ページ側が core に入れるよう指定した要素
+  for (const m of cleaned.matchAll(/<(\w+)[^>]*\bdata-font-core\b[^>]*>([\s\S]*?)<\/\1>/gi)) {
+    coreText += stripTags(m[2]) + ' ';
+  }
 
   // 太字で描画されうるコンテキスト: 見出し・strong・b・th
   for (const m of cleaned.matchAll(
