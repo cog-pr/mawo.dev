@@ -203,6 +203,24 @@ for (const job of jobs) {
 }
 
 // unicode-range は生成した文字集合とズレると欠字になるため、手書きせず自動生成する。
+//
+// ext 側には unicode-range を書かない（= 全範囲）。代わりに **core を後に定義する**。
+//
+// CSS Fonts 4 §4.5 は、同じ family / style で unicode-range が重なる場合
+// 「後に定義された規則から先に照合する」と定めている。したがって
+//   - core の範囲内の文字 … 先に照合される core が使われる（正しい）
+//   - それ以外の文字       … core が外れ、全範囲の ext が使われる（正しい）
+// となり、両方に範囲を書いたときと結果は完全に一致する。
+// 取得も従来どおり必要な側だけで、トップページが ext を落とすことはない。
+//
+// なぜこうするか: unicode-range の文字列そのものが重い。
+// CSSはインライン化しているため、この文字列は**全ページのHTMLに焼き込まれる**。
+// ext 側の範囲は 2974バイト（gzip 1122バイト）あり、これを消すと全ページの
+// 文書がその分小さくなる。「このサイトについて」は文書サイズがそのまま
+// FCP → LCP に効くページなので（仕様書 §8 の但し書き）、ここが直接効く。
+//
+// 順序を入れ替えてはいけない。core を先に書くと、core の範囲内の文字にも
+// 全範囲の ext が優先され、字形が欠ける（ext にその字は入っていない）。
 const generatedCss = `/*
   自動生成 — 直接編集しないこと（\`npm run fonts:subset\` が書き出す）。
 
@@ -210,9 +228,22 @@ const generatedCss = `/*
   - core: トップページで実際に使う文字
   - ext:  それ以外のページでしか出てこない文字
 
-  ブラウザは unicode-range を見て、そのページに必要なファイルだけを取得する。
-  トップページ（LCPの測定対象）は core だけで足り、ext を落とさない。
+  ext には unicode-range を書かず（全範囲）、core を後に定義している。
+  CSS は「後に定義された @font-face から先に照合する」ため、core の範囲内は
+  core が、範囲外は ext が使われる。両方に範囲を書くのと結果は同じで、
+  巨大な範囲文字列を1つ減らせる（全ページのHTMLに焼き込まれるため）。
+
+  **この2つの順序を入れ替えないこと。** core を先に書くと ext が優先され、
+  トップページの和文が欠ける。
 */
+@font-face {
+  font-family: 'Zen Kaku Gothic New';
+  src: url('/fonts/ZenKakuGothicNew-Regular-ext.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 @font-face {
   font-family: 'Zen Kaku Gothic New';
   src: url('/fonts/ZenKakuGothicNew-Regular.woff2') format('woff2');
@@ -220,15 +251,6 @@ const generatedCss = `/*
   font-style: normal;
   font-display: swap;
   unicode-range: ${emittedRanges.core};
-}
-
-@font-face {
-  font-family: 'Zen Kaku Gothic New';
-  src: url('/fonts/ZenKakuGothicNew-Regular-ext.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-  unicode-range: ${emittedRanges.ext};
 }
 `;
 await writeFile(new URL('../src/styles/fonts-jp.generated.css', import.meta.url), generatedCss);

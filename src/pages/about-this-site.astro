@@ -150,6 +150,53 @@ const craft = [
   },
 ];
 
+/*
+  検索エンジンからの見え方。
+  スタック一覧と同じ構造にして、同じマークアップで描画する。
+
+  ここは「打った手」であって「結果」ではない。
+  実測値セクションと混ぜないこと（区別が読者に伝わらなくなる）。
+
+  なお、このページは文字を足すとそのまま LCP が伸びる（下記の但し書き）。
+  各項目は一文で書き、理由は意思決定ログ側に置くこと。
+*/
+const seo = [
+  {
+    category: 'サイトに実装したもの',
+    items: [
+      {
+        name: '構造化データ (JSON-LD)',
+        note: 'Person と WebSite を書き、sameAs で GitHub と X に紐付けた。書くのは名前・URL・アカウント・連絡先だけで、肩書きのような主観は入れない。',
+      },
+      {
+        name: 'sitemap.xml / robots.txt',
+        note: 'ビルド時に全ページのURLを列挙し、robots.txt からその場所を指している。',
+      },
+      {
+        name: 'canonical / OGP',
+        note: '正規URLを明示し、SNSに貼られたときのカード表示も絶対URLで指定している。',
+      },
+      {
+        name: 'JSなしで読める静的HTML',
+        note: 'クローラーにはこれが最も確実な条件で、しかもSEOのために用意したものではない。演出を遅延ロードへ追い出した設計がそのまま効いている。',
+      },
+    ],
+  },
+  {
+    category: 'サイトの外で設定したもの',
+    items: [
+      {
+        name: 'Search Console',
+        note: 'DNSのTXTレコードで所有権を確認し、サイトマップを送信した。',
+      },
+      {
+        name: 'GitHub リポジトリの改名',
+        note: 'ドメインと同名だったリポジトリの名前を変えた。理由は下の意思決定ログにある。',
+      },
+    ],
+  },
+];
+
 const measuredAt = new Date(metrics.measuredAt).toLocaleString('ja-JP', {
   timeZone: 'Asia/Tokyo',
   dateStyle: 'medium',
@@ -238,12 +285,12 @@ const measuredAt = new Date(metrics.measuredAt).toLocaleString('ja-JP', {
       */}
       <p class="about__note">
         <strong>このページだけ LCP の目標を 2.4s に緩めています。</strong>
-        和文の分量が多く、LCP要素である冒頭の一文がフォントの到着を待つためです。
-        preload、サブセットの切り分け、LCP要素の差し替えを試しましたが、
-        いずれも 2.25s 前後から動きませんでした。
+        当初これを「和文フォントの到着待ち」と説明していましたが、<strong>誤りでした</strong>。
+        FCP が 1.9s あり、LCP との差は 0.2s しかありません。効いているのは
+        <strong>HTML 文書そのものの大きさ</strong>で、文章を足すとそのぶん素直に遅くなります。
+        preload もサブセットの切り分けも効かなかったのは、原因が別の場所にあったためです。
         内容を削れば通りますが、それはこのページの存在価値を削ることになるので、
-        <strong>数値のほうを譲りました</strong>。
-        CI ではこのページだけ 2.4s、他のページは 2.0s のまま判定しています。
+        数値のほうを譲りました。CI ではこのページだけ 2.4s、他は 2.0s のまま判定しています。
       </p>
     </section>
 
@@ -291,6 +338,43 @@ const measuredAt = new Date(metrics.measuredAt).toLocaleString('ja-JP', {
           ))
         }
       </ol>
+    </section>
+
+    <section class="about__section" aria-labelledby="seo-heading">
+      <h2 id="seo-heading" class="about__heading">検索結果での見え方</h2>
+      <p class="about__body">
+        公開当初、このドメイン名は GitHub のリポジトリ名と同じでした。検索すると、
+        サイトより先にソースコードのリポジトリが出てきます。検索エンジンから見えるのは
+        <strong>同じ文字列を持つ2つのページ</strong>でしかなく、どちらが本人の公式サイトかを
+        判断する材料がありませんでした。順位ではなく、識別の問題です。
+      </p>
+
+      {
+        seo.map((group) => (
+          <div class="stack">
+            <h3 class="stack__category font-mono">{group.category}</h3>
+            <dl class="stack__list">
+              {group.items.map((item) => (
+                <div class="stack__item">
+                  <dt class="stack__name font-mono">{item.name}</dt>
+                  <dd class="stack__note">{item.note}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        ))
+      }
+
+      {/*
+        このページは実測値を出すことで成り立っている。
+        測っていないものを同じ調子で並べると、その信頼を借りることになる。
+      */}
+      <p class="about__note">
+        <strong>ここだけは実測値がありません。</strong>
+        順位は自分で決められる指標ではなく、反映までの時間も制御できません。
+        この節に書いたのは<strong>打った手であって、結果ではありません</strong>。
+        読めるようになった時点で数値を出します。外していたらそう書きます。
+      </p>
     </section>
 
     <section class="about__section" aria-labelledby="demo-heading">
