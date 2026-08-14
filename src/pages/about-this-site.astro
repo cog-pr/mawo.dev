@@ -150,6 +150,54 @@ const craft = [
   },
 ];
 
+/*
+  検索エンジンからの見え方。
+  スタック一覧と同じ構造にして、同じマークアップで描画する。
+
+  ここは「打った手」であって「結果」ではない。
+  実測値セクションと混ぜないこと（区別が読者に伝わらなくなる）。
+*/
+const seo = [
+  {
+    category: 'サイトに実装したもの',
+    items: [
+      {
+        name: '構造化データ (JSON-LD)',
+        note: 'Person と WebSite を schema.org の語彙で書き、sameAs で GitHub と X のアカウントに紐付けている。「この3つは同じ人物のものだ」と機械に伝えるのが目的。書いているのは名前・URL・アカウント・連絡先だけで、肩書きのような主観は入れない。構造化データは文脈も根拠も添えられない形式なので、検証できない情報を置くと主張ではなく飾りになる。',
+      },
+      {
+        name: 'sitemap.xml / robots.txt',
+        note: 'ビルド時に全ページのURLを列挙し、robots.txt からその場所を指している。どちらも配信先URLを基準に生成されるため、公開先を変えるときは設定の2箇所を必ずセットで直す。',
+      },
+      {
+        name: 'canonical / OGP / Twitter Card',
+        note: '正規URLを明示し、SNSに貼られたときのカード表示も絶対URLで指定している。ポートフォリオのURLは人に送られる前提なので、貼られた先での見え方まで含めて「見え方」だと考えている。',
+      },
+      {
+        name: 'JSなしで読める静的HTML',
+        note: '全作品の本文とリンクが、JSを無効にしても読める。クローラーにとってはこれが最も確実な条件で、しかもSEOのために用意したものではない。演出を遅延ロードへ追い出した設計が、そのまま効いているだけ。',
+      },
+    ],
+  },
+  {
+    category: 'サイトの外で設定したもの',
+    items: [
+      {
+        name: 'Search Console のドメインプロパティ',
+        note: 'DNSのTXTレコードで所有権を確認した。URLプレフィックスではなくドメインプロパティを選んだのは、プロトコルやサブドメインの違いをまとめて1つとして扱えるため。',
+      },
+      {
+        name: 'サイトマップの送信とインデックス登録の申請',
+        note: 'sitemap-index.xml を送信し、トップページを優先クロールのキューに入れた。',
+      },
+      {
+        name: 'GitHub リポジトリの改名',
+        note: 'ドメインと同名だったリポジトリの名前を変えた。理由は下の意思決定ログに書いている。',
+      },
+    ],
+  },
+];
+
 const measuredAt = new Date(metrics.measuredAt).toLocaleString('ja-JP', {
   timeZone: 'Asia/Tokyo',
   dateStyle: 'medium',
@@ -291,6 +339,45 @@ const measuredAt = new Date(metrics.measuredAt).toLocaleString('ja-JP', {
           ))
         }
       </ol>
+    </section>
+
+    <section class="about__section" aria-labelledby="seo-heading">
+      <h2 id="seo-heading" class="about__heading">検索結果での見え方</h2>
+      <p class="about__body">
+        公開した当初、このドメイン名は GitHub のリポジトリ名と同じでした。
+        検索するとサイトより先にソースコードのリポジトリが出てくる状態です。
+        検索エンジンの側から見れば、<strong>同じ文字列を持つ2つのページ</strong>があるだけで、
+        どちらが本人の公式サイトかを判断する材料がありません。
+        順位の問題ではなく、識別の材料を渡していないという問題でした。
+      </p>
+
+      {
+        seo.map((group) => (
+          <div class="stack">
+            <h3 class="stack__category font-mono">{group.category}</h3>
+            <dl class="stack__list">
+              {group.items.map((item) => (
+                <div class="stack__item">
+                  <dt class="stack__name font-mono">{item.name}</dt>
+                  <dd class="stack__note">{item.note}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        ))
+      }
+
+      {/*
+        このページは実測値を出すことで成り立っている。
+        測っていないものを同じ調子で並べると、その信頼を借りることになる。
+      */}
+      <p class="about__note">
+        <strong>ここだけは実測値がありません。</strong>
+        検索順位は自分で決められる指標ではなく、反映されるまでの時間も制御できません。
+        フォントの分割も preload の絞り込みも数値を見て決めてきましたが、
+        この節に書いたのは<strong>打った手であって、結果ではありません</strong>。
+        効果が読めるようになった時点で数値を出します。外していたらそう書きます。
+      </p>
     </section>
 
     <section class="about__section" aria-labelledby="demo-heading">
