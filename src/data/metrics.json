@@ -1,22 +1,22 @@
 {
-  "measuredAt": "2026-08-14T16:04:03.421Z",
+  "measuredAt": "2026-08-14T22:35:25.372Z",
   "environment": "Lighthouse (mobile, simulated throttling, gzip配信)",
   "scores": {
-    "performance": 99,
+    "performance": 100,
     "accessibility": 100,
     "bestPractices": 100,
     "seo": 100
   },
   "vitals": {
-    "lcpMs": 1591,
+    "lcpMs": 1661,
     "cls": 0,
     "tbtMs": 0,
-    "fcpMs": 1366
+    "fcpMs": 1361
   },
   "budget": {
-    "initialJsGzipBytes": 6140,
-    "initialJsFileCount": 2,
-    "fontsBytes": 161136,
+    "initialJsGzipBytes": 5494,
+    "initialJsFileCount": 1,
+    "fontsBytes": 161220,
     "fontsFileCount": 5
   }
 }
