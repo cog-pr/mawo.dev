@@ -29,5 +29,12 @@ export const AUTHOR = {
   jpPlain: '中野広翔',
   en: 'Hiroto Nakano',
   handleJp: 'まを',
-  handleEn: 'mawo',
+  /*
+    名前のローマ字表記なので大文字始まり。真下に並ぶ Hiroto Nakano と
+    同じ役割の欄なので、片方だけ小文字だと直し忘れに見える。
+
+    小文字の mawo はドメイン（mawo.dev）とメールアドレスの中だけ。
+    あちらは住所であって名前ではないので、小文字のまま触らないこと。
+  */
+  handleEn: 'Mawo',
 } as const;
