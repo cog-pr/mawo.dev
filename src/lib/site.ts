@@ -9,4 +9,4 @@
   「誰のポートフォリオか」が分かる名前のほうが役に立つ（仕様書 §11）。
   ヒーローとヘッダーの WINDOWS AT NIGHT は概念の表示なのでそのまま。
 */
-export const SITE_NAME = "mawo's portfolio";
+export const SITE_NAME = "Mawo's Portfolio";
