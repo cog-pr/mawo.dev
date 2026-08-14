@@ -3,7 +3,7 @@ import { Image } from 'astro:assets';
 import icon from '../../assets/mawo_icon.png';
 
 /*
-  プロフィール。ヒーローと窓グリッドの間に置く。
+  プロフィール。トップページの、ヒーローと成果物への入口の間に置く。
 
   見せ方は「灯っている窓」。サイトの概念（1つの窓 = 1つの中身）をそのまま使い、
   作品ではなく人が入っている窓として提示する。
@@ -25,7 +25,7 @@ const bio = [
 const skills = ['Astro', 'TypeScript', 'WebGL / OGL', 'GSAP', 'Cloudflare Workers', 'CSS'];
 ---
 
-<section class="profile" aria-labelledby="profile-heading">
+<section id="profile" class="profile" aria-labelledby="profile-heading">
   <div class="profile__inner">
     {/* 灯っている窓。中にいるのが本人という見立て */}
     <div class="profile__window">

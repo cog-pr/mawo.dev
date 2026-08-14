@@ -2,13 +2,20 @@
 import { Image } from 'astro:assets';
 import Base from '../layouts/Base.astro';
 import Profile from '../components/profile/Profile.astro';
-import WorksList from '../components/facade/WorksList.astro';
+import WorksEntry from '../components/facade/WorksEntry.astro';
 import heroImage from '../assets/hero.png';
+
+/*
+  トップページ（仕様書 §5.1）。
+
+  成果物の一覧は `/works/` に分けた。ここが担うのは
+  「誰のサイトか」と「どこに何があるか」の2つだけ。
+*/
 ---
 
 <Base
-  title="Selected Works"
-  description="夜のネオン街の看板のように作品を並べたポートフォリオ。設計から実装まで。"
+  title="Portfolio"
+  description="まを（mawo）のポートフォリオ。設計から実装まで。夜のネオン街の看板のように成果物を並べています。"
   siteJsonLd
 >
   <section class="hero">
@@ -42,13 +49,13 @@ import heroImage from '../assets/hero.png';
       <span class="hero__line" style="--i: 1">AT NIGHT</span>
     </h1>
     <p class="hero__role font-mono" style="--i: 2">Designer / Developer</p>
-    <a href="#works" class="hero__scroll" aria-label="SCROLL — 作品一覧へ">
+    <a href="#profile" class="hero__scroll" aria-label="SCROLL — プロフィールへ">
       <span class="hero__scroll-track" aria-hidden="true"></span>
       <span class="font-mono hero__scroll-label">SCROLL</span>
     </a>
   </section>
   <Profile />
-  <WorksList />
+  <WorksEntry />
 </Base>
 
 <style>
@@ -74,7 +81,7 @@ import heroImage from '../assets/hero.png';
     */
     /*
       背景はビューポートに固定し、コンテンツ側だけがその上を流れていく。
-      スクロールすると作品一覧セクション（不透明な --c-void）が
+      スクロールするとプロフィール（不透明な --c-void）が
       せり上がってきて、止まったままの夜景を覆い隠す。
 
       position: fixed なので .hero の overflow: hidden では切られない

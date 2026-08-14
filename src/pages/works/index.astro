@@ -1,0 +1,74 @@
+---
+import Base from '../../layouts/Base.astro';
+import WorksList from '../../components/facade/WorksList.astro';
+import { getPublishedWorks } from '../../lib/works';
+
+/*
+  成果物の一覧（仕様書 §5.4）。
+
+  以前はトップページの下半分に置いていたが、独立したページに分けた。
+  トップは「入口」、ここは「一覧」と役割を分けることで、
+  どちらも自分の仕事だけをすればよくなる。
+
+  見出しはこのページが持つ（h1）。WorksList 側は看板の列と
+  背景（光害の空・縦組みレール）だけを受け持つ。
+*/
+const works = await getPublishedWorks();
+const years = works.map((w) => w.data.year);
+const range =
+  years.length > 0 ? `${Math.min(...years)}—${Math.max(...years)}` : '';
+---
+
+<Base
+  title="Works"
+  description="設計から実装まで手を入れた成果物の一覧。夜のネオン街の看板のように並べています。"
+>
+  <WorksList>
+    <header class="works-page__header">
+      <h1 class="works-page__title font-display">WORKS</h1>
+      <p class="works-page__meta font-mono">
+        <span class="works-page__count">{works.length}</span>
+        <span aria-hidden="true">/</span>
+        <span>{range}</span>
+      </p>
+      <p class="works-page__lead">
+        設計から実装まで手を入れたものを並べています。看板をひとつ選ぶと詳細に入ります。
+      </p>
+    </header>
+  </WorksList>
+</Base>
+
+<style>
+  @layer components {
+    .works-page__header {
+      margin-bottom: var(--space-4);
+    }
+
+    .works-page__title {
+      font-size: var(--fs-h1);
+      line-height: var(--lh-display);
+      color: var(--c-fluorescent);
+    }
+
+    .works-page__meta {
+      display: flex;
+      align-items: baseline;
+      gap: 0.6em;
+      margin-top: var(--space-1);
+      color: var(--c-dust);
+      font-size: var(--fs-caption);
+      letter-spacing: 0.16em;
+    }
+
+    .works-page__count {
+      color: var(--c-fluorescent);
+    }
+
+    .works-page__lead {
+      margin-top: var(--space-3);
+      color: var(--c-dust);
+      font-size: var(--fs-small);
+      max-width: 46ch;
+    }
+  }
+</style>

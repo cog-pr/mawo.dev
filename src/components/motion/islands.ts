@@ -21,7 +21,49 @@ function whenNear(target: Element, load: () => void, rootMargin = '200px 0px'): 
   observer.observe(target);
 }
 
+/*
+  演出を取りに行き始めるタイミング。「最初の操作」か「2.5秒経過」の早い方。
+
+  観測を始める時刻そのものを遅らせるのが要点。専用ページ `/works/` では
+  一覧がページ先頭に来るため IntersectionObserver が即座に発火し、
+  GSAP（26.6+17.2KB）と OGL（14.3KB）が本文のフォントと同時に走っていた。
+  実測で LCP が 1887〜2036ms の幅で振れ、予算 2000ms の境界に乗る。
+
+  演出はすべて上乗せで、無くてもページは成立する（仕様書 §9）。
+  上乗せが入口の速度を食うなら順序が逆なので、本文を配り終えるまで待たせる。
+
+  スクロールを合図にしているのは、点灯もパララックスも本来スクロールに
+  連動する演出だから。触らない人にも見せるため 2.5 秒で保険をかける。
+
+  View Transitions で遷移してきた場合、load イベントはもう来ない。
+  readyState を見て即座に待機へ入る。
+*/
+function whenSettled(run: () => void): void {
+  const EVENTS = ['scroll', 'pointerdown', 'keydown', 'touchstart'] as const;
+  let timer = 0;
+
+  const fire = () => {
+    EVENTS.forEach((type) => window.removeEventListener(type, fire));
+    window.clearTimeout(timer);
+    run();
+  };
+
+  const arm = () => {
+    EVENTS.forEach((type) =>
+      window.addEventListener(type, fire, { once: true, passive: true })
+    );
+    timer = window.setTimeout(fire, 2500);
+  };
+
+  if (document.readyState === 'complete') arm();
+  else window.addEventListener('load', arm, { once: true });
+}
+
 export function initIslands(): void {
+  whenSettled(initIslandsNow);
+}
+
+function initIslandsNow(): void {
   const section = document.querySelector<HTMLElement>('.works-section');
   if (!section) return;
 

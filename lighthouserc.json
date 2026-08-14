@@ -5,6 +5,7 @@
       "startServerReadyPattern": "serving dist/",
       "url": [
         "http://localhost:4173/",
+        "http://localhost:4173/works/",
         "http://localhost:4173/about-this-site/",
         "http://localhost:4173/works/lumen-editor/"
       ],

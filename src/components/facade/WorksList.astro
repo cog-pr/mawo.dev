@@ -1,31 +1,37 @@
 ---
-import { getCollection } from 'astro:content';
 import WorkSign from './WorkSign.astro';
 import LightPollution from '../sky/LightPollution.astro';
 import VerticalRail from '../rail/VerticalRail.astro';
+import { getPublishedWorks } from '../../lib/works';
 
 /*
-  作品一覧。
+  成果物の一覧（看板の列）。
 
   以前は 3:4 の窓を敷き詰めたグリッドで、うち67%は装飾（暗いだけのセル）だった。
   ただ実際には装飾として機能しておらず、「作品が入っていない枠」に見えていた。
   さらに作品名とサムネイルがホバー時しか出ないため、タッチ端末では
   タップするまで何も分からない状態だった。よって装飾セルは全廃し、
   作品だけを看板として並べる形に変えた（仕様書 §6.1 改訂）。
+
+  見出しは持たず、<slot> でページ側から受け取る。
+  このセクションは専用ページ `/works/` の主役なので、見出しは h1 であるべきで、
+  それを決められるのはページ側だけだから（仕様書 §5.4）。
 */
-const works = await getCollection('works', ({ data }) => !data.draft);
-const sorted = [...works].sort((a, b) => a.data.order - b.data.order);
+const sorted = await getPublishedWorks();
 
 /*
-  管の色。作品ごとに割り当てて多色の街にする（§1.2 改訂で紫縛りは撤回）。
-  順番に回すので、リロードしても同じ作品は同じ色になる。
+  管の色。看板ごとに割り当てて多色の街にする（§1.2 改訂で紫縛りは撤回）。
+
+  上から 赤 → 橙 → 緑 → 水色 → 紫 の順で回す（§6.4）。
+  順番に回すだけなので、リロードしても同じ作品は同じ色になる。
+  ランダムにはしない。同じ作品が毎回違う色で光ると、看板ではなく照明になる。
 */
 const TUBES = [
+  { hue: 'var(--neon-red)', core: 'var(--neon-red-core)' },
+  { hue: 'var(--neon-orange)', core: 'var(--neon-orange-core)' },
+  { hue: 'var(--neon-green)', core: 'var(--neon-green-core)' },
   { hue: 'var(--neon-cyan)', core: 'var(--neon-cyan-core)' },
-  { hue: 'var(--neon-pink)', core: 'var(--neon-pink-core)' },
-  { hue: 'var(--neon-amber)', core: 'var(--neon-amber-core)' },
   { hue: 'var(--neon-violet)', core: 'var(--neon-violet-core)' },
-  { hue: 'var(--neon-lime)', core: 'var(--neon-lime-core)' },
 ];
 ---
 
@@ -34,12 +40,9 @@ const TUBES = [
   <VerticalRail />
 
   <div class="works-section__inner">
-    <h2 class="works-section__heading font-mono">
-      SELECTED WORKS
-      <span class="works-section__count">{sorted.length}</span>
-    </h2>
+    <slot />
 
-    <nav aria-label="作品一覧">
+    <nav aria-label="成果物一覧">
       <ol class="works">
         {
           sorted.map((work, i) => (
@@ -70,21 +73,6 @@ const TUBES = [
       );
     }
 
-    /*
-      トップページでは固定背景の夜景をこのセクションが覆い隠す。
-      境目が直線で切れると切り抜きミスに見えるため、少し上に暗転の帯を出す。
-    */
-    .works-section::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      right: 0;
-      bottom: 100%;
-      height: var(--space-6);
-      pointer-events: none;
-      background: linear-gradient(to bottom, transparent, var(--c-void));
-    }
-
     /* 光害の空は下端が最も明るいので、セクションの終わりで闇に還す */
     .works-section::after {
       content: '';
@@ -103,21 +91,6 @@ const TUBES = [
       z-index: 1;
       max-width: 64rem;
       margin-inline: auto;
-    }
-
-    .works-section__heading {
-      display: flex;
-      align-items: baseline;
-      gap: 0.6em;
-      color: var(--c-dust);
-      font-size: var(--fs-caption);
-      font-weight: 400;
-      letter-spacing: 0.16em;
-      margin-bottom: var(--space-3);
-    }
-
-    .works-section__count {
-      color: var(--c-fluorescent);
     }
 
     .works {

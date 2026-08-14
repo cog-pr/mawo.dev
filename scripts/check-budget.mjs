@@ -15,7 +15,7 @@ const PORT = Number(process.env.BUDGET_PORT ?? 4174);
 const RUNS = Number(process.env.BUDGET_RUNS ?? 3);
 const ORIGIN = `http://localhost:${PORT}`;
 
-const PATHS = ['/', '/about-this-site/', '/works/lumen-editor/'];
+const PATHS = ['/', '/works/', '/about-this-site/', '/works/lumen-editor/'];
 
 /*
   LCP だけページごとに閾値が違う。lighthouserc.json の assertMatrix と揃えること。
