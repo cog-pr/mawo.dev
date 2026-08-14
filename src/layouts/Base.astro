@@ -14,6 +14,7 @@ import '../styles/neon.css';
 import { ClientRouter } from 'astro:transitions';
 import Header from '../components/layout/Header.astro';
 import Footer from '../components/layout/Footer.astro';
+import { SITE_NAME } from '../lib/site';
 
 interface Props {
   title: string;
@@ -34,8 +35,14 @@ interface Props {
 }
 
 const { title, description, preloadFonts = [], siteJsonLd = false } = Astro.props;
-const siteName = '夜のビルの窓';
-const pageTitle = `${title} | ${siteName}`;
+const siteName = SITE_NAME;
+
+/*
+  タブに出る文字列。「ページ名 | サイト名」で組むが、
+  トップのようにページ名がサイト名そのものの場合は繰り返さない
+  （「mawo's portfolio | mawo's portfolio」になるため）。
+*/
+const pageTitle = title === siteName ? siteName : `${title} | ${siteName}`;
 
 // SNSやチャットに貼られたときのカード表示に使う絶対URL。
 // Astro.site（astro.config.mjs の site）が基準なので、公開先が変わったらそちらを直す。

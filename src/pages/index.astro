@@ -4,6 +4,7 @@ import Base from '../layouts/Base.astro';
 import Profile from '../components/profile/Profile.astro';
 import WorksEntry from '../components/facade/WorksEntry.astro';
 import heroImage from '../assets/hero.png';
+import { SITE_NAME } from '../lib/site';
 
 /*
   トップページ（仕様書 §5.1）。
@@ -13,8 +14,9 @@ import heroImage from '../assets/hero.png';
 */
 ---
 
+{/* トップのページ名はサイト名そのもの。タブでは繰り返さない（Base.astro） */}
 <Base
-  title="Portfolio"
+  title={SITE_NAME}
   description="まを（mawo）のポートフォリオ。設計から実装まで。夜のネオン街の看板のように成果物を並べています。"
   siteJsonLd
 >
