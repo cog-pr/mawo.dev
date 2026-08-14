@@ -68,14 +68,24 @@ if (htmlFiles.length === 0) {
 let renderedText = '';
 let boldText = '';
 /*
-  core = トップページで必要な文字 + 各ページが明示的に指定した文字
+  core = 入口ページで必要な文字 + 各ページが明示的に指定した文字
   ext  = それ以外のページにしか出ない文字
+
+  入口ページ = トップ（/）と成果物一覧（/works/）。
+  この2枚は「最初に開かれる前提のページ」なので、和文の到着を待たせない。
 
   分割の境界は実測で決めた。core を広げて「全ページの見出し＋導入段落」まで
   自動で入れると core が 34.7→54.4KB に膨らみ、トップの LCP が 1894→2179ms と
-  悪化した。よって自動では広げず、必要なページが自分で申告する方式にしている。
+  悪化した。よって全ページを入れることはせず、入口の2枚だけを対象にしている。
 
-  申告の仕方: その要素に data-font-core を付ける。
+  成果物一覧を core に含める理由（2026-08-15 実測）:
+  一覧を専用ページに分けた直後、このページの和文は ext 側に落ちていた。
+  ext は「このサイトについて」の長文まで抱えて 72KB あり、一覧を開くたびに
+  それを丸ごと取得していた。LCP要素は看板のタイトル（Archivo）なのに、
+  同時に走る 113KB の和文・等幅フォントが帯域を奪って LCP 2330ms まで落ちた。
+  一覧側の和文を core に移すと ext を取得しなくなる。
+
+  個別に申告したい場合: その要素に data-font-core を付ける。
   ファーストビューに出る和文で、ext の到着を待たせたくないものに使う。
   （例: 「このサイトについて」の導入文。core/ext にまたがっていたため
    LCP が 2.25s まで落ちていた）
@@ -83,7 +93,13 @@ let boldText = '';
 */
 let coreText = '';
 
-const isHome = (file) => /[/\\]dist[/\\]index\.html$/.test(file);
+/*
+  入口ページの判定。dist/index.html と dist/works/index.html。
+  作品詳細（dist/works/<slug>/index.html）は含めない。
+  本文が長く、入れると core が膨らんで入口が遅くなる。
+*/
+const isEntryPage = (file) =>
+  /[/\\]dist[/\\]index\.html$/.test(file) || /[/\\]dist[/\\]works[/\\]index\.html$/.test(file);
 
 for (const file of htmlFiles) {
   const raw = await readFile(file, 'utf-8');
@@ -91,7 +107,7 @@ for (const file of htmlFiles) {
 
   const pageText = stripTags(cleaned) + ' ' + renderedAttributeText(cleaned);
   renderedText += pageText;
-  if (isHome(file)) coreText += pageText;
+  if (isEntryPage(file)) coreText += pageText;
 
   // ページ側が core に入れるよう指定した要素
   for (const m of cleaned.matchAll(/<(\w+)[^>]*\bdata-font-core\b[^>]*>([\s\S]*?)<\/\1>/gi)) {

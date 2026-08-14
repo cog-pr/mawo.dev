@@ -28,18 +28,32 @@
     管の色。紫縛りはしない（仕様書 §1.2 改訂）。
     街の看板は多色で、紫だけのネオン街は存在しない。
     --neon-*-core は芯用で、彩度を落として白に寄せてある。
+
+    成果物一覧の看板は、上から
+      赤 → 橙 → 緑 → 水色 → 紫
+    の順で回す（仕様書 §6.4）。並び順の定義は WorksList.astro にある。
   */
-  --neon-violet: #6a2bff;
-  --neon-violet-core: #e7ddff;
+  --neon-red: #ff2f3f;
+  --neon-red-core: #ffdee1;
+
+  --neon-orange: #ff9124;
+  --neon-orange-core: #ffe7cd;
+
+  --neon-green: #2bff77;
+  --neon-green-core: #d9ffe6;
 
   --neon-cyan: #00d5ff;
   --neon-cyan-core: #d6f7ff;
 
+  --neon-violet: #6a2bff;
+  --neon-violet-core: #e7ddff;
+
+  /*
+    予備。ループには入れていないが、単発の装飾には使ってよい。
+    増やすときも「芯は白に寄せる」規則（§6.4）を守ること。
+  */
   --neon-pink: #ff2e88;
   --neon-pink-core: #ffdcec;
-
-  --neon-amber: #ff9d2e;
-  --neon-amber-core: #ffe9cf;
 
   --neon-lime: #6dff5a;
   --neon-lime-core: #e2ffdc;

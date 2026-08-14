@@ -1,0 +1,113 @@
+---
+import { getPublishedWorks } from '../../lib/works';
+
+/*
+  トップページから成果物一覧への入口（仕様書 §5.1）。
+
+  一覧を別ページに移した以上、トップには「そこに何があるか」を
+  一目で示すものが要る。ここも看板として作る。
+  件数を出しているのは、押した先に何件あるかが分かるほうが押しやすいため。
+
+  リンクは <a> ひとつ。JSなしでもキーボードでも同じ挙動になる。
+*/
+const works = await getPublishedWorks();
+---
+
+<section class="entry">
+  <a href="/works/" class="entry__link">
+    <span class="entry__body">
+      <span class="entry__label font-mono">SELECTED WORKS</span>
+      <span class="entry__title font-display neon">WORKS</span>
+      <span class="entry__jp">成果物 {works.length} 件</span>
+    </span>
+    <span class="entry__arrow font-mono" aria-hidden="true">&rarr;</span>
+  </a>
+</section>
+
+<style>
+  @layer components {
+    .entry {
+      position: relative;
+      background: var(--c-void);
+      padding: 0 var(--space-3) var(--space-6);
+    }
+
+    .entry__link {
+      /* 管の色。ループ（§6.4）は一覧側の話なので、ここは紫で固定する */
+      --neon-hue: var(--neon-violet);
+      --neon-core: var(--neon-violet-core);
+      --neon-strength: 0.55;
+
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-3);
+      max-width: 64rem;
+      margin-inline: auto;
+      padding: var(--space-4) var(--space-2);
+      border-top: 1px solid var(--c-facade);
+      border-bottom: 1px solid var(--c-facade);
+      transition:
+        background var(--dur-base) var(--ease-inout),
+        --neon-strength var(--dur-base) var(--ease-inout);
+    }
+
+    .entry__link:hover,
+    .entry__link:focus-visible {
+      --neon-strength: 1.15;
+      background: var(--c-facade);
+      transition:
+        background var(--dur-fast) var(--ease-out),
+        --neon-strength var(--dur-fast) var(--ease-out);
+    }
+
+    .entry__body {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      min-width: 0;
+    }
+
+    .entry__label {
+      color: var(--c-dust);
+      font-size: var(--fs-caption);
+      letter-spacing: 0.16em;
+    }
+
+    .entry__title {
+      font-size: var(--fs-h1);
+      line-height: var(--lh-display);
+    }
+
+    .entry__jp {
+      color: var(--c-fluorescent);
+      font-size: var(--fs-small);
+    }
+
+    .entry__arrow {
+      flex: none;
+      color: var(--c-dust);
+      font-size: var(--fs-h2);
+      transition: transform var(--dur-base) var(--ease-inout);
+    }
+
+    .entry__link:hover .entry__arrow,
+    .entry__link:focus-visible .entry__arrow {
+      transform: translateX(0.35em);
+      color: var(--c-fluorescent);
+      transition: transform var(--dur-fast) var(--ease-out);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .entry__link,
+      .entry__arrow {
+        transition: none;
+      }
+
+      .entry__link:hover .entry__arrow,
+      .entry__link:focus-visible .entry__arrow {
+        transform: none;
+      }
+    }
+  }
+</style>
