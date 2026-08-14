@@ -22,16 +22,16 @@ function whenNear(target: Element, load: () => void, rootMargin = '200px 0px'): 
 }
 
 export function initIslands(): void {
-  const section = document.querySelector<HTMLElement>('.window-section');
+  const section = document.querySelector<HTMLElement>('.works-section');
   if (!section) return;
 
   const reduced = prefersReducedMotion();
 
-  // --- 窓グリッドの点灯シーケンス ---
-  // 静的HTMLの時点で作品セルは --c-facade-lit で描画済み。これは上乗せの演出。
-  const grid = section.querySelector<HTMLElement>('.window-grid');
-  if (grid && !reduced) {
-    whenNear(grid, () => {
+  // --- 作品看板の点灯シーケンス ---
+  // 静的HTMLの時点で看板は読める状態で描画済み。これは上乗せの演出。
+  const list = section.querySelector<HTMLElement>('.works');
+  if (list && !reduced) {
+    whenNear(list, () => {
       import('../facade/ignite').then(({ initIgnite }) => initIgnite());
     });
   }
