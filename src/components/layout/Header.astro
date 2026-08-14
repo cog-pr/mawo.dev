@@ -9,10 +9,28 @@
   Esc で閉じる・背景のスクロールを止める・閉じたときにボタンへ
   フォーカスを戻す、といった快適さの部分だけをJSで上乗せする。
 */
+/*
+  トップページをメニューに入れている理由:
+
+  パネルは全画面（position: fixed / inset: 0）で開くため、ヘッダー左の
+  サイト名——トップへのリンク——を覆い隠す。メニューを開いた状態からは
+  トップへ戻る導線が無くなるので、メニュー自身が持つ必要がある。
+
+  href は末尾スラッシュ付きで書く。実際に配信されるURLと揃えて、
+  リダイレクトの往復を1回減らすため。
+*/
 const links = [
+  { href: '/', label: 'HOME', jp: 'トップ' },
   { href: '/works/', label: 'WORKS', jp: '成果物' },
-  { href: '/about-this-site', label: 'ABOUT THIS SITE', jp: 'このサイトについて' },
+  { href: '/about-this-site/', label: 'ABOUT THIS SITE', jp: 'このサイトについて' },
 ];
+
+/*
+  現在地の印。メニューに今いるページが並ぶようになったので、
+  どれが現在地かを示す。末尾スラッシュの有無で取りこぼさないよう正規化して比べる。
+*/
+const here = Astro.url.pathname.replace(/\/+$/, '') || '/';
+const isCurrent = (href: string) => (href.replace(/\/+$/, '') || '/') === here;
 
 const socials = [
   { href: 'https://github.com/cog-pr', label: 'GitHub' },
@@ -39,7 +57,11 @@ const socials = [
           {
             links.map((item) => (
               <li>
-                <a href={item.href} class="menu__link">
+                <a
+                  href={item.href}
+                  class="menu__link"
+                  aria-current={isCurrent(item.href) ? 'page' : undefined}
+                >
                   <span class="menu__link-en font-display">{item.label}</span>
                   <span class="menu__link-jp">{item.jp}</span>
                 </a>
@@ -210,14 +232,25 @@ const socials = [
     /*
       ホバー/フォーカスで管が灯る（§6.4）。
       点灯は速く、消灯は遅く（§3.3）。
+
+      現在地は「その看板が既に灯っている」状態で示す。
+      色だけに頼らず aria-current="page" も併せて出しているので、
+      読み上げ環境にも同じことが伝わる。
     */
     .menu__link:hover .menu__link-en,
-    .menu__link:focus-visible .menu__link-en {
+    .menu__link:focus-visible .menu__link-en,
+    .menu__link[aria-current='page'] .menu__link-en {
       text-shadow:
         0 0 6px var(--neon-cyan),
         0 0 18px color-mix(in srgb, var(--neon-cyan) 70%, transparent),
         0 0 42px color-mix(in srgb, var(--neon-cyan) 40%, transparent);
       transition: text-shadow var(--dur-fast) var(--ease-out);
+    }
+
+    /* 現在地の和文にも印を出す。発光に気づかない場合の保険 */
+    .menu__link[aria-current='page'] .menu__link-jp::before {
+      content: '— ';
+      color: var(--neon-cyan);
     }
 
     .menu__socials {
