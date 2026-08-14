@@ -1,6 +1,7 @@
 ---
 import { Image } from 'astro:assets';
 import icon from '../../assets/mawo_icon.png';
+import { AUTHOR } from '../../lib/site';
 
 /*
   プロフィール。トップページの、ヒーローと成果物への入口の間に置く。
@@ -11,8 +12,6 @@ import icon from '../../assets/mawo_icon.png';
 
   ※ 本文とスキルは仮置き。実際の内容に差し替えること。
 */
-const name = 'まを';
-const nameEn = 'mawo';
 const role = 'Designer / Developer';
 
 // TODO: 実際の自己紹介に差し替える
@@ -31,7 +30,7 @@ const skills = ['Astro', 'TypeScript', 'WebGL / OGL', 'GSAP', 'Cloudflare Worker
     <div class="profile__window">
       <Image
         src={icon}
-        alt={`${nameEn} のアイコン`}
+        alt={`${AUTHOR.handleEn} のアイコン`}
         widths={[260, 520]}
         sizes="(min-width: 768px) 260px, 60vw"
         format="avif"
@@ -44,9 +43,20 @@ const skills = ['Astro', 'TypeScript', 'WebGL / OGL', 'GSAP', 'Cloudflare Worker
     <div class="profile__body">
       <h2 class="profile__label font-mono" id="profile-heading">ABOUT</h2>
 
+      {/*
+        大きく出すのはハンドル。サイト名（Mawo's Portfolio）と揃う。
+        本名はその真下に小さく置く。看板に屋号、その下に正式な名前、という関係。
+
+        和文を .font-mono に入れないこと。--font-mono には和文が無く、
+        システムの既定書体に落ちて Zen Kaku と混ざる。
+      */}
       <p class="profile__name">
-        <span class="profile__name-jp">{name}</span>
-        <span class="profile__name-en font-mono">{nameEn}</span>
+        <span class="profile__name-jp">{AUTHOR.handleJp}</span>
+        <span class="profile__name-en font-mono">{AUTHOR.handleEn}</span>
+      </p>
+      <p class="profile__realname">
+        <span class="profile__realname-jp">{AUTHOR.jp}</span>
+        <span class="profile__realname-en font-mono">{AUTHOR.en}</span>
       </p>
       <p class="profile__role font-mono">{role}</p>
 
@@ -146,6 +156,29 @@ const skills = ['Astro', 'TypeScript', 'WebGL / OGL', 'GSAP', 'Cloudflare Worker
 
     .profile__name-en {
       font-size: var(--fs-small);
+      color: var(--c-dust);
+      letter-spacing: 0.1em;
+    }
+
+    /*
+      本名。ハンドルより一段落として、同じ人の別表記だと分かる位置に置く。
+      和文は --c-fluorescent、ローマ字は --c-dust で、視線の順序を作る。
+    */
+    .profile__realname {
+      display: flex;
+      align-items: baseline;
+      gap: var(--space-2);
+      flex-wrap: wrap;
+      margin-top: var(--space-1);
+      font-size: var(--fs-small);
+    }
+
+    .profile__realname-jp {
+      color: var(--c-fluorescent);
+      letter-spacing: 0.04em;
+    }
+
+    .profile__realname-en {
       color: var(--c-dust);
       letter-spacing: 0.1em;
     }

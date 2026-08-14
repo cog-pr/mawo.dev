@@ -1,4 +1,6 @@
 ---
+import { AUTHOR } from '../../lib/site';
+
 // 連絡先。表示文字列とmailtoを二重に書くとズレるので一箇所で持つ。
 const contactEmail = 'contact@mawo.dev';
 
@@ -25,7 +27,8 @@ const socials = [
         ))
       }
     </ul>
-    <p class="site-footer__meta font-mono">© {new Date().getFullYear()}</p>
+    {/* 記名する場所なので本名を出す（ハンドルはプロフィール側で見せている） */}
+    <p class="site-footer__meta font-mono">© {new Date().getFullYear()} {AUTHOR.en}</p>
   </div>
 </footer>
 
