@@ -25,9 +25,15 @@ interface Props {
     無関係な書体を足すと帯域を奪い合ってかえって遅くなる（実測済み）。
   */
   preloadFonts?: string[];
+  /*
+    構造化データ（JSON-LD）を出すかどうか。
+    Person / WebSite は「サイトと運営者そのもの」を説明するものなので、
+    全ページに重複して出さずトップだけに置く。
+  */
+  siteJsonLd?: boolean;
 }
 
-const { title, description, preloadFonts = [] } = Astro.props;
+const { title, description, preloadFonts = [], siteJsonLd = false } = Astro.props;
 const siteName = '夜のビルの窓';
 const pageTitle = `${title} | ${siteName}`;
 
@@ -35,6 +41,43 @@ const pageTitle = `${title} | ${siteName}`;
 // Astro.site（astro.config.mjs の site）が基準なので、公開先が変わったらそちらを直す。
 const canonical = new URL(Astro.url.pathname, Astro.site);
 const ogImage = new URL('/og.jpg', Astro.site);
+
+/*
+  構造化データ。
+
+  狙いは「このドメインが本人の公式サイトである」と検索エンジンに示すこと。
+  sameAs で GitHub / X と紐付けるのがその要で、同名のリポジトリなど
+  他所のページと取り違えられるのを防ぐ。
+
+  書くのは検証できる事実だけにする（名前・URL・アカウント・連絡先）。
+  肩書きのような主観的な情報は、サイト本文で述べれば足りる。
+*/
+const siteUrl = new URL('/', Astro.site).href;
+const personId = `${siteUrl}#person`;
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'Person',
+      '@id': personId,
+      name: 'まを',
+      alternateName: 'mawo',
+      url: siteUrl,
+      email: 'mailto:contact@mawo.dev',
+      sameAs: ['https://github.com/cog-pr', 'https://x.com/cog__pr'],
+    },
+    {
+      '@type': 'WebSite',
+      '@id': `${siteUrl}#website`,
+      name: siteName,
+      url: siteUrl,
+      inLanguage: 'ja',
+      author: { '@id': personId },
+      publisher: { '@id': personId },
+    },
+  ],
+};
 ---
 
 <!doctype html>
@@ -91,6 +134,15 @@ const ogImage = new URL('/og.jpg', Astro.site);
       preloadFonts.map((href) => (
         <link rel="preload" href={href} as="font" type="font/woff2" crossorigin />
       ))
+    }
+    {
+      siteJsonLd && (
+        <script
+          type="application/ld+json"
+          is:inline
+          set:html={JSON.stringify(jsonLd)}
+        />
+      )
     }
     <ClientRouter />
   </head>
