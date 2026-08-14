@@ -2,19 +2,18 @@
 import { getPublishedWorks } from '../../lib/works';
 
 /*
-  トップページから成果物一覧への入口（仕様書 §5.1）。
+  トップページから主要ページへの入口（仕様書 §5.1）。
 
-  一覧を別ページに移した以上、トップには「そこに何があるか」を
-  一目で示すものが要る。ここも看板として作る。
-  件数を出しているのは、押した先に何件あるかが分かるほうが押しやすいため。
+  「成果物」と「このサイトについて」に何があるかを一目で示す、
+  同じ形の看板を並べる。Works は件数も出し、押した先の内容量を伝える。
 
-  リンクは <a> ひとつ。JSなしでもキーボードでも同じ挙動になる。
+  各導線は <a> ひとつ。JSなしでもキーボードでも同じ挙動になる。
 */
 const works = await getPublishedWorks();
 ---
 
-<section class="entry">
-  <a href="/works/" class="entry__link">
+<section class="entries" aria-label="主要ページ">
+  <a href="/works/" class="entry__link entry__link--works">
     <span class="entry__body">
       <span class="entry__label font-mono">SELECTED WORKS</span>
       <span class="entry__title font-display neon">WORKS</span>
@@ -22,20 +21,28 @@ const works = await getPublishedWorks();
     </span>
     <span class="entry__arrow font-mono" aria-hidden="true">&rarr;</span>
   </a>
+
+  <a href="/about-this-site/" class="entry__link entry__link--about">
+    <span class="entry__body">
+      <span class="entry__label font-mono">DESIGN &amp; ENGINEERING</span>
+      <span class="entry__title font-display neon">ABOUT THIS SITE</span>
+      <span class="entry__jp">このサイトの設計と実装</span>
+    </span>
+    <span class="entry__arrow font-mono" aria-hidden="true">&rarr;</span>
+  </a>
 </section>
 
 <style>
   @layer components {
-    .entry {
+    .entries {
       position: relative;
+      display: grid;
+      gap: var(--space-2);
       background: var(--c-void);
       padding: 0 var(--space-3) var(--space-6);
     }
 
     .entry__link {
-      /* 管の色。ループ（§6.4）は一覧側の話なので、ここは紫で固定する */
-      --neon-hue: var(--neon-violet);
-      --neon-core: var(--neon-violet-core);
       --neon-strength: 0.55;
 
       display: flex;
@@ -50,6 +57,17 @@ const works = await getPublishedWorks();
       transition:
         background var(--dur-base) var(--ease-inout),
         --neon-strength var(--dur-base) var(--ease-inout);
+    }
+
+    /* 一覧の多色看板と同じく、入口ごとに管の色を変えて見分けやすくする */
+    .entry__link--works {
+      --neon-hue: var(--neon-violet);
+      --neon-core: var(--neon-violet-core);
+    }
+
+    .entry__link--about {
+      --neon-hue: var(--neon-cyan);
+      --neon-core: var(--neon-cyan-core);
     }
 
     .entry__link:hover,
@@ -77,6 +95,7 @@ const works = await getPublishedWorks();
     .entry__title {
       font-size: var(--fs-h1);
       line-height: var(--lh-display);
+      overflow-wrap: anywhere;
     }
 
     .entry__jp {
