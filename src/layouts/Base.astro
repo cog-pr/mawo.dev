@@ -14,7 +14,7 @@ import '../styles/neon.css';
 import { ClientRouter } from 'astro:transitions';
 import Header from '../components/layout/Header.astro';
 import Footer from '../components/layout/Footer.astro';
-import { SITE_NAME } from '../lib/site';
+import { SITE_NAME, AUTHOR } from '../lib/site';
 
 interface Props {
   title: string;
@@ -66,10 +66,18 @@ const jsonLd = {
   '@context': 'https://schema.org',
   '@graph': [
     {
+      /*
+        name は本名、alternateName にローマ字表記とハンドルを並べる。
+
+        画面で大きく見せているのはハンドルだが、ここは機械に「同じ人物の
+        別表記」を教える欄なので、全部を1つの Person に集約する。
+        本名で検索されてもハンドルで検索されても同じ人に行き着くようにする狙い
+        （§11: 示すべきは集客の文句ではなく同一性）。
+      */
       '@type': 'Person',
       '@id': personId,
-      name: 'まを',
-      alternateName: 'mawo',
+      name: AUTHOR.jpPlain,
+      alternateName: [AUTHOR.en, AUTHOR.handleJp, AUTHOR.handleEn],
       url: siteUrl,
       email: 'mailto:contact@mawo.dev',
       sameAs: ['https://github.com/cog-pr', 'https://x.com/cog__pr'],
