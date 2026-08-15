@@ -96,7 +96,7 @@ def main() -> None:
     x = 72
     draw.text((x, 214), "WINDOWS", font=title, fill=C_FLUORESCENT)
     draw.text((x, 322), "AT NIGHT", font=title, fill=C_FLUORESCENT)
-    draw.text((x, 452), "Designer / Developer", font=mono, fill=C_DUST)
+    draw.text((x, 452), "Developer / ML Engineer", font=mono, fill=C_DUST)
 
     # 中身は写真なので JPEG。PNG だと同じ絵で4倍以上重くなる。
     out = ROOT / "public" / "og.jpg"
