@@ -10,14 +10,21 @@ import { AUTHOR } from '../../lib/site';
   作品ではなく人が入っている窓として提示する。
   アイコンがPCに向かう後ろ姿なので、窓の中を覗いている構図になる。
 
-  ※ 本文とスキルは仮置き。実際の内容に差し替えること。
+  ※ 肩書き（role）とスキル一覧はまだ仮置き。実際の内容に差し替えること。
+    自己紹介の本文は差し替え済み。
 */
 const role = 'Designer / Developer';
 
-// TODO: 実際の自己紹介に差し替える
+/*
+  自己紹介。所属と、いま何をしているか。
+
+  文章ではなく短い事実を並べているので、行間は段落用の余白ではなく
+  詰めた値を使う（下の .profile__bio + .profile__bio）。
+*/
 const bio = [
-  '夜の街の看板や窓明かりのように、目に入った瞬間に意味が伝わるものを作りたいと思っています。',
-  '設計から実装まで一人で通すことが多く、見た目と速度のどちらも落とさない落としどころを探すのが好きです。',
+  '千葉工業大学情報変革科学部認知情報科学科3年',
+  '機械学習の研究をしています。',
+  'Nekko Cloud所属',
 ];
 
 // TODO: 実際に使う技術に差し替える
@@ -190,10 +197,18 @@ const skills = ['Astro', 'TypeScript', 'WebGL / OGL', 'GSAP', 'Cloudflare Worker
       letter-spacing: 0.08em;
     }
 
+    /*
+      中身は文章ではなく短い事実の列。段落用の余白（space-3）で全行を離すと
+      1行ずつが孤立して見えるので、塊の頭だけ空けて中は詰める。
+    */
     .profile__bio {
       margin-top: var(--space-3);
       color: var(--c-dust);
       max-width: 46ch;
+    }
+
+    .profile__bio + .profile__bio {
+      margin-top: var(--space-1);
     }
 
     .profile__skills {
