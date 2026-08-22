@@ -27,8 +27,28 @@ const bio = [
   'Nekko Cloud所属',
 ];
 
-// TODO: 実際に使う技術に差し替える
-const skills = ['Astro', 'TypeScript', 'WebGL / OGL', 'GSAP', 'Cloudflare Workers', 'CSS'];
+/*
+  スキル。用途で分類して並べる。
+
+  一列に並べると Python と Docker が同じ粒度に見える。
+  「何をするための道具か」で切ると、読む人の知りたいこと
+  （この人に何を頼めるのか）に直接答えられる。
+
+  分類は言語ではなく用途で切っている。Flask / FastAPI は Python だが
+  用途は Web なので WEB 側、Streamlit は ML の結果を見せる道具なので ML 側。
+
+  ここに書くのは面接で聞かれて答えられるものだけにすること。
+  このサイトは実測値しか出さない建て方をしているので、
+  スキル欄だけ触った程度のものの全列挙になると、そこだけ質が落ちる。
+*/
+const skillGroups = [
+  { category: 'MACHINE LEARNING', items: ['Python', 'PyTorch', 'Streamlit'] },
+  {
+    category: 'WEB',
+    items: ['TypeScript', 'React', 'Next.js', 'Node.js', 'FastAPI', 'Flask'],
+  },
+  { category: 'ENVIRONMENT', items: ['Docker'] },
+];
 ---
 
 <section id="profile" class="profile" aria-labelledby="profile-heading">
@@ -69,13 +89,22 @@ const skills = ['Astro', 'TypeScript', 'WebGL / OGL', 'GSAP', 'Cloudflare Worker
 
       {bio.map((line) => <p class="profile__bio">{line}</p>)}
 
+      {/* 分類名は欧文のみ。和文を .font-mono に入れると既定書体に落ちる */}
       <dl class="profile__skills">
-        <dt class="font-mono">SKILLS</dt>
-        <dd>
-          <ul class="font-mono">
-            {skills.map((s) => <li>{s}</li>)}
-          </ul>
-        </dd>
+        {
+          skillGroups.map((group) => (
+            <div class="profile__skill-group">
+              <dt class="font-mono">{group.category}</dt>
+              <dd>
+                <ul class="font-mono">
+                  {group.items.map((s) => (
+                    <li>{s}</li>
+                  ))}
+                </ul>
+              </dd>
+            </div>
+          ))
+        }
       </dl>
     </div>
   </div>
@@ -212,6 +241,9 @@ const skills = ['Astro', 'TypeScript', 'WebGL / OGL', 'GSAP', 'Cloudflare Worker
     }
 
     .profile__skills {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
       margin-top: var(--space-4);
     }
 
@@ -219,7 +251,8 @@ const skills = ['Astro', 'TypeScript', 'WebGL / OGL', 'GSAP', 'Cloudflare Worker
       color: var(--c-dust);
       font-size: var(--fs-caption);
       letter-spacing: 0.16em;
-      margin-bottom: var(--space-2);
+      /* 分類が複数並ぶので、見出しと中身は近づけ、群の間で離す */
+      margin-bottom: var(--space-1);
     }
 
     .profile__skills dd {
