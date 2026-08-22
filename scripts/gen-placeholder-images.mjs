@@ -57,14 +57,13 @@ function buildingSvg({ width, height, seed, coverMode }) {
 </svg>`;
 }
 
+// src/content/works/*.md の slug と揃えること。
+// 実際のスクリーンショットに差し替えたら、その作品はこの配列から外す。
 const works = [
-  { slug: 'lumen-editor', seed: 11 },
-  { slug: 'kioku-archive', seed: 22 },
-  { slug: 'shizuku-player', seed: 33 },
-  { slug: 'nagi-crm', seed: 44 },
-  { slug: 'yoru-map', seed: 55 },
-  { slug: 'tomoshibi-cms', seed: 66 },
-  { slug: 'gaitou-analytics', seed: 77 },
+  { slug: 'takaga-ai', seed: 11 },
+  { slug: 'omotenashi', seed: 22 },
+  { slug: 'owl-snap', seed: 33 },
+  { slug: 'smombie-app', seed: 44 },
 ];
 
 const DEST = new URL('../src/content/works/images/', import.meta.url);

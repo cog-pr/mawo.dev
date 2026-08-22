@@ -12,7 +12,7 @@ export async function getStaticPaths() {
 }
 
 const { entry } = Astro.props;
-const { title, titleEn, year, roles, stack, summary, cover } = entry.data;
+const { title, titleEn, year, roles, stack, summary, cover, links } = entry.data;
 const { Content } = await render(entry);
 ---
 
@@ -49,6 +49,25 @@ const { Content } = await render(entry);
             <dd>{stack.join(' / ')}</dd>
           </div>
         </dl>
+
+        {/*
+          外部リンク。作品ページに来た人が次に押すのはここなので、
+          メタ情報の最後に置く。別タブで開く（フッターのSNSリンクと同じ扱い）。
+          サイト外へ出す導線なので、戻ってこられるようにしておく。
+        */}
+        {
+          links.length > 0 && (
+            <ul class="work__links">
+              {links.map((link) => (
+                <li>
+                  <a href={link.href} rel="noopener noreferrer" target="_blank">
+                    {link.label} <span aria-hidden="true">&#8599;</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )
+        }
       </aside>
 
       <div class="work__content">
@@ -117,6 +136,64 @@ const { Content } = await render(entry);
 
     .work__content :global(p) {
       margin-bottom: var(--space-3);
+    }
+
+    /*
+      本文中の見出し。ラベルとして扱うので小さく、字間を開ける。
+      欧文のみで書くこと（--font-mono に和文が無く、混ぜると既定書体に落ちる）。
+    */
+    .work__content :global(h2) {
+      margin-top: var(--space-4);
+      margin-bottom: var(--space-2);
+      font-family: var(--font-mono);
+      font-size: var(--fs-caption);
+      font-weight: 400;
+      letter-spacing: 0.16em;
+      color: var(--c-dust);
+      padding-bottom: var(--space-1);
+      border-bottom: 1px solid var(--c-facade);
+    }
+
+    .work__content :global(ul) {
+      margin-bottom: var(--space-3);
+      padding-left: 1.1em;
+      list-style: disc;
+      color: var(--c-dust);
+    }
+
+    .work__content :global(li) {
+      margin-bottom: 0.35em;
+      line-height: 1.9;
+    }
+
+    .work__content :global(strong) {
+      color: var(--c-fluorescent);
+      font-weight: 700;
+    }
+
+    /* --- 外部リンク --- */
+    .work__links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-1) var(--space-2);
+      margin-top: var(--space-3);
+      font-size: var(--fs-caption);
+      letter-spacing: 0.06em;
+    }
+
+    .work__links a {
+      color: var(--c-fluorescent);
+      padding: 0.3em 0.7em;
+      border: 1px solid var(--c-facade-lit);
+      border-radius: var(--radius-button);
+      display: inline-block;
+      transition: border-color var(--dur-base) var(--ease-inout);
+    }
+
+    .work__links a:hover,
+    .work__links a:focus-visible {
+      border-color: var(--c-signal);
+      transition: border-color var(--dur-fast) var(--ease-out);
     }
 
     .work__back {
