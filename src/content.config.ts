@@ -12,10 +12,16 @@ const works = defineCollection({
       roles: z.array(z.string()), // 例: ['設計', '実装']
       stack: z.array(z.string()), // 例: ['Astro', 'GSAP']
       summary: z.string().max(120), // 一覧のホバー時に出る一文
-      thumbnail: image(), // 窓セル内に表示
+      thumbnail: image(), // 看板に表示
       cover: image(), // 詳細ページのヘッダー
-      // 仕様書は z.string().url() 表記だが、zod v4 では非推奨。検証内容は同一。
-      url: z.url().optional(),
+      /*
+        外部リンク。1作品に GitHub とサービスURLの両方があるのが普通なので、
+        単一の url ではなく配列で持つ。label は表示名（GitHub / サービス など）。
+        仕様書は z.string().url() 表記だが、zod v4 では非推奨。検証内容は同一。
+      */
+      links: z
+        .array(z.object({ label: z.string(), href: z.url() }))
+        .default([]),
       order: z.number(), // グリッド内の並び順（小さいほど先）
       draft: z.boolean().default(false),
     }),
